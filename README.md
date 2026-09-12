@@ -1,21 +1,67 @@
-# hedronite-devops-lab
+<h1 align="center">hedronite-lab</h1>
 
-## What this is
+<p align="center">
+  <strong>A student OS and a devops workshop on your laptop.</strong><br>
+  <em>Install once. Two verbs after: <code>hedronos</code> and <code>lab</code>.</em>
+</p>
 
-An ephemeral DevOps lab in a single container image: Terraform with multi-version tfenv, kubectl, helm, krew, k9s, Go, Python via uv, Rust, Rails 7, R with tidyverse, Prometheus, Grafana, and the bench tools (gh, jq, yq, tmux, vim, neovim, zsh). Start it, work, throw it away. Anything worth keeping lives in a bind-mount; the container itself holds nothing precious. It exists so certification practice and infrastructure experiments run in a room that resets to clean every time you enter.
+<p align="center">
+  <a href="https://github.com/VirtualMachinist/hedronos"><img src="https://img.shields.io/badge/student_OS-hedronos-b87333?style=flat&colorA=0a0a0e" alt="hedronos"></a>
+  <a href="https://github.com/VirtualMachinist/hedronite-devops-lab"><img src="https://img.shields.io/badge/devops_toolbox-lab-1e3a8a?style=flat&colorA=0a0a0e" alt="lab"></a>
+  <a href="https://ghcr.io/hedronite/lab"><img src="https://img.shields.io/badge/GHCR-hedronite%2Flab-1e3a8a?style=flat&colorA=0a0a0e" alt="ghcr.io/hedronite/lab"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/VirtualMachinist/hedronite-devops-lab?style=flat&colorA=0a0a0e&colorB=b87333" alt="MIT license"></a>
+</p>
 
-## Install
+<p align="center">
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="#whats-mounted">Mounts</a> ·
+  <a href="https://github.com/VirtualMachinist/hedronos">Student OS repo</a>
+</p>
 
-Pick a container runtime:
+<p align="center">
+  Built by <a href="https://hedronite.com">Hedronite</a>'s
+  <a href="https://github.com/VirtualMachinist">VirtualMachinist</a>.
+  This repo is the <strong><code>lab</code></strong> verb — not HedronOS itself.
+</p>
 
-- **OrbStack** (recommended): fastest VirtioFS bind-mounts on macOS and native Rosetta for running amd64 images on Apple silicon. `brew install orbstack`.
-- **Colima**: open-source, same Rosetta path when started with:
+---
+
+**hedronite-lab** is the umbrella install story for two verbs on one laptop:
+
+| Verb | Repo | Role |
+|---|---|---|
+| **`hedronos`** | [`VirtualMachinist/hedronos`](https://github.com/VirtualMachinist/hedronos) | Terminal student OS (Boot → Home → lessons) |
+| **`lab`** | **this repo** | Disposable devops toolbox in `ghcr.io/hedronite/lab` |
+
+**Start with the HedronOS install** — it wires the kernel, the TUI, and the `lab` function in one pass:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/VirtualMachinist/hedronos/main/install.sh | bash
+```
+
+Use **`lab` alone** below only if you want the workshop without the student OS.
+
+## What this repo is
+
+An ephemeral DevOps lab in a single container image: Terraform with multi-version tfenv, kubectl, helm, krew, k9s, Go, Python via uv, Rust, Rails 7, R with tidyverse, Prometheus, Grafana, and bench tools (gh, jq, yq, tmux, vim, neovim, zsh).
+
+Start it, work, throw it away. Anything worth keeping lives in a bind-mount; the container holds nothing precious. Certification practice and infrastructure experiments run in a room that resets to clean every time you enter.
+
+## Quick start
+
+**Needs:** a container runtime (OrbStack, Docker Desktop, or Colima) and zsh on the host.
+
+Pick a runtime:
+
+- **OrbStack** (recommended on macOS): fastest VirtioFS bind-mounts and native Rosetta for amd64 images on Apple silicon. `brew install orbstack`.
+- **Colima**: open source; on Apple silicon:
 
 ```bash
 colima start --arch aarch64 --vm-type=vz --vz-rosetta
 ```
 
-- **Docker Desktop**: works fine if you already run it.
+- **Docker Desktop**: works if you already run it.
 
 Pull the image:
 
@@ -23,25 +69,32 @@ Pull the image:
 docker pull ghcr.io/hedronite/lab:latest
 ```
 
-Install the shell function. Clone this repo and source the file:
+Install the shell function (VirtualMachinist is the source of truth for raw URLs):
 
 ```zsh
+source <(curl -fsSL https://raw.githubusercontent.com/VirtualMachinist/hedronite-devops-lab/main/shell/lab.zsh)
+```
+
+Or clone and source locally:
+
+```zsh
+git clone https://github.com/VirtualMachinist/hedronite-devops-lab.git
 source /path/to/hedronite-devops-lab/shell/lab.zsh
 ```
 
-or source it straight from the tag:
+Add whichever line you choose to `~/.zshrc`.
 
-```zsh
-source <(curl -fsSL https://raw.githubusercontent.com/Hedronite/hedronite-devops-lab/v0.1.1/shell/lab.zsh)
+Verify:
+
+```bash
+lab echo ok
 ```
-
-Put whichever line you choose in `~/.zshrc`.
 
 ## Usage
 
 Four patterns cover everything.
 
-An interactive shell:
+Interactive shell:
 
 ```bash
 lab
@@ -53,7 +106,7 @@ One command, then gone:
 lab terraform version
 ```
 
-Chained, each command in its own fresh container:
+Chained — each command in its own fresh container:
 
 ```bash
 lab terraform init && lab terraform plan
@@ -67,60 +120,61 @@ lab uv run pytest
 
 Every invocation starts a new container and removes it on exit. State that must survive belongs under `/workspace`.
 
+Pair with the student OS anytime: [`hedronos`](https://github.com/VirtualMachinist/hedronos#two-verbs) for lessons; **`lab`** for infra practice.
+
 ## What's mounted
 
 | Container path | Host path | Mode | Purpose |
 |---|---|---|---|
 | `/workspace` | `~/lab-workspaces/default` (override: `LAB_WORKSPACE`) | rw | scratch that survives the container |
-| `/labs` | `~/Obsidian/Atrium/Atrium/Archmagus-Stack/Sovereign-Bootcamp` | ro | practice corpus |
-| `/tomes` | `~/Obsidian/Atrium/Atrium/Archmagus-Stack/09-Tomes` | ro | reference books |
-| `/root/.aws` | `~/.aws` | ro | AWS credentials |
-| `/root/.config/gcloud` | `~/.config/gcloud` | ro | GCP credentials |
-| `/root/.azure` | `~/.azure` | ro | Azure credentials |
-| `/root/.kube` | `~/.kube` | ro | cluster access |
-| `/root/.ssh` | `~/.ssh` | ro | git identity |
+| `/labs` | `LAB_LABS` if set and the path exists | ro | optional practice corpus |
+| `/tomes` | `LAB_TOMES` if set and the path exists | ro | optional reference books |
+| `/root/.aws` | `~/.aws` if present | ro | AWS credentials |
+| `/root/.config/gcloud` | `~/.config/gcloud` if present | ro | GCP credentials |
+| `/root/.azure` | `~/.azure` if present | ro | Azure credentials |
+| `/root/.kube` | `~/.kube` if present | ro | cluster access |
+| `/root/.ssh` | `~/.ssh` if present | ro | git identity |
 
-Read-only is deliberate for everything except `/workspace`. The container can use your credentials and your corpus; it cannot alter either. No experiment, however badly it goes, reaches back into the source material.
+By default only `/workspace` is mounted. Set `LAB_LABS` and/or `LAB_TOMES` when you have local practice material; otherwise you see a one-line note that corpus mounts are optional.
+
+Read-only is deliberate for everything except `/workspace`. The container can use your credentials and your corpus; it cannot alter either.
 
 ## Cloud credentials
 
-The image contains no credentials and never will. No Dockerfile layer copies a secret, and the `.gitignore` blocks the common leak paths. Credentials reach the container only through the read-only mounts above.
+The image contains no credentials and never will. No Dockerfile layer copies a secret, and the `.gitignore` blocks common leak paths. Credentials reach the container only through the read-only mounts above.
 
-Each cloud CLI runs under a `[lab]` profile, so lab work uses scoped, revocable access instead of your daily identity:
+Each cloud CLI can run under a `[lab]` profile — scoped, revocable access instead of your daily identity:
 
 ```bash
 bash scripts/setup-lab-profile.sh
 ```
 
-The script prompts per cloud, skips anything already configured, and is safe to re-run. Inside the container, select the profile explicitly: `AWS_PROFILE=lab`, `gcloud config configurations activate lab`, or the Azure service principal the script created.
+Inside the container: `AWS_PROFILE=lab`, `gcloud config configurations activate lab`, or the Azure service principal the script created.
 
-## Kubernetes
+## Kubernetes (optional)
 
-kubectl in the container points wherever your host kubeconfig points. The intended target is a k3s node named `hedronite-devops-lab`, joined as a worker to an existing control plane. Once the node exists and its context is merged into `~/.kube/config`, select it on the host:
+kubectl in the container points wherever your host kubeconfig points. An advanced path joins a k3s worker named `hedronite-devops-lab`; **v1 one-click install does not require a cluster.**
+
+Once a context exists:
 
 ```bash
 kubectl config use-context hedronite-devops-lab
-```
-
-The kubeconfig mount is read-only, so context switching stays a host-side act. Verify reach from inside:
-
-```bash
 lab kubectl get nodes
 ```
 
-`labs-examples/k8s/` holds a first deployment to run against the node.
+See `labs-examples/k8s/` for a first deployment.
 
 ## Observability
 
-Two modes, one stack. For scratch work the image ships `prometheus` and `grafana` as plain binaries; start them inside the container, point them at anything reachable, discard them with the container. For monitoring that persists, `helm/prom-stack-values.yaml` configures kube-prometheus-stack on the lab node with 15-day retention and `local-path` storage. `labs-examples/obs/` walks through both.
+For scratch work the image ships `prometheus` and `grafana` as plain binaries — start inside the container, discard with the container. For monitoring that persists, `helm/prom-stack-values.yaml` configures kube-prometheus-stack; `labs-examples/obs/` walks through both.
 
 ## Philosophy
 
-Cattle, not pets. A lab machine you configure by hand becomes a machine you fear to lose, and fear is the wrong relationship with practice infrastructure. So the container is disposable by construction: every run starts from the same image, and the image rebuilds from one Dockerfile anyone can read.
+Cattle, not pets. A lab machine you configure by hand becomes a machine you fear to lose. The container is disposable by construction: every run starts from the same image, and the image rebuilds from one Dockerfile anyone can read.
 
-The partition does the real work. Study material mounts read-only. Scratch lands in `/workspace`. The container holds nothing. Delete it mid-session and you lose only a process table. If losing a container ever costs you something, a file sat in the wrong place — the fix is to move the file, never to protect the container.
+Study material mounts read-only. Scratch lands in `/workspace`. Delete the container mid-session and you lose only a process table.
 
-## Contributing / Extending
+## Contributing / extending
 
 Tool versions are `ARG`s at the top of the Dockerfile. Bump one, tag a release, and CI publishes multi-arch images to GHCR:
 
@@ -129,9 +183,7 @@ git tag v0.1.1
 git push origin v0.1.1
 ```
 
-To add a language, add one layer in the toolchain section of the Dockerfile and end it with a smoke command that proves the install, matching the existing layers. Keep fast-changing layers low in the file so rebuilds stay cheap.
-
-Fork freely. MIT terms apply.
+To add a language, add one layer in the toolchain section and end with a smoke command matching the existing layers.
 
 ## License
 
