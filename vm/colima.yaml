@@ -1,0 +1,37 @@
+# Colima profile template for the lab builder VM.
+# bootstrap.sh copies this to $COLIMA_HOME/<profile>/colima.yaml before first start.
+# Docker runtime plus single-node k3s (traefik disabled).
+cpu: 3
+memory: 6
+disk: 40
+rootDisk: 20
+arch: aarch64
+vmType: vz
+rosetta: false
+binfmt: true
+nestedVirtualization: false
+runtime: docker
+autoActivate: true
+kubernetes:
+  enabled: true
+  version: v1.35.0+k3s1
+  k3sArgs:
+    - --disable=traefik
+  port: 0
+network:
+  address: false
+  mode: shared
+  dns: []
+  dnsHosts: {}
+  hostAddresses: false
+forwardAgent: false
+docker:
+  # Optional. bootstrap.sh fills this from LAB_INSECURE_REGISTRY (host:port).
+  insecure-registries: []
+mountType: virtiofs
+mountInotify: true
+# Empty list = colima default: the home directory, writable.
+mounts: []
+sshConfig: true
+provision: []
+env: {}
