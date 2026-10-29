@@ -27,7 +27,7 @@ The script refuses to reuse an existing profile, writes `vm/colima.yaml` as the
 profile config, starts it, waits for the node to be Ready, then runs a docker
 build, a `terraform init/validate` and a k8s rollout.
 
-Remove it with `colima delete -p builder2 -f`.
+Remove it with `colima delete -p builder2 --data -f` (without `--data` the 40 GiB data disk stays behind; `LIMA_HOME=~/.colima/_lima limactl disk delete colima-builder2` clears it).
 
 ## Not carried over by a rebuild
 
