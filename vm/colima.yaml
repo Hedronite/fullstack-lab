@@ -11,7 +11,7 @@ rosetta: false
 binfmt: true
 nestedVirtualization: false
 runtime: docker
-autoActivate: true
+autoActivate: false
 kubernetes:
   enabled: true
   version: v1.35.0+k3s1
@@ -30,7 +30,7 @@ docker:
   insecure-registries: []
 mountType: virtiofs
 mountInotify: true
-# Empty list = colima default: the home directory, writable.
+# bootstrap.sh replaces this with: repo dir (ro) + lab workspace (rw).
 mounts: []
 sshConfig: true
 provision: []
