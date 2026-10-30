@@ -1,10 +1,13 @@
-# grader dir (graders/<name>)            lab dir in the submodule (curriculum/upstream/tfpro-labs/...)
-01-lifecycle-cli-broken                  labs/01-lifecycle-cli-broken
-02-dynamic-config-broken                 labs/02-dynamic-config-broken
-03-state-import-moved-broken             labs/03-state-import-moved-broken
-04-remote-state-backend-broken           labs/04-remote-state-backend-broken
-05-workspaces-cross-stack-broken         labs/05-workspaces-cross-stack-broken
-06-providers-alias-auth-broken           labs/06-providers-alias-auth-broken
-07-validation-checks-tests-broken        labs/07-validation-checks-tests-broken
-08-iam-ec2-broken                        labs/08-iam-ec2-broken
-09-security-group-rules-broken           labs/09-security-group-rules-broken
+# grader dir (graders/<name>)            lab dir in the submodule                type
+# type: fix     = lab ships broken; grader FAILs as shipped, student fixes main.tf until PASS
+#       explain = lab ships correct; grader PASSes as shipped (regression check), student
+#                 writes up why the config is correct (see curriculum/README.md)
+01-lifecycle-cli-broken                  labs/01-lifecycle-cli-broken               fix
+02-dynamic-config-broken                 labs/02-dynamic-config-broken              fix
+03-state-import-moved-broken             labs/03-state-import-moved-broken          fix
+04-remote-state-backend-broken           labs/04-remote-state-backend-broken        fix
+05-workspaces-cross-stack-broken         labs/05-workspaces-cross-stack-broken      fix
+06-providers-alias-auth-broken           labs/06-providers-alias-auth-broken        fix
+07-validation-checks-tests-broken        labs/07-validation-checks-tests-broken     explain
+08-iam-ec2-broken                        labs/08-iam-ec2-broken                     explain
+09-security-group-rules-broken           labs/09-security-group-rules-broken        explain

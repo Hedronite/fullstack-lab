@@ -1,5 +1,5 @@
 # Lab 05 — Workspaces and cross-stack consumption  ·  grader  (PARTIAL - see scope note)
-# Staged next to its upstream lab by curriculum/week1/tf/stage.sh.
+# Staged as tests/hedronite_grader.tftest.hcl by curriculum/week1/tf/stage.sh.
 
 mock_provider "aws" {}
 

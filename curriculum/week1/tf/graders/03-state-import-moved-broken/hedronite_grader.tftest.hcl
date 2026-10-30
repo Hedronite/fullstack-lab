@@ -1,6 +1,6 @@
 # Lab 03 — Import, child module, moved block  ·  grader
-# Staged next to its upstream lab by curriculum/week1/tf/stage.sh.
-# Offline: mock_provider ⟹ no AWS credentials, no network, no cost. Terraform >= 1.7.
+# Staged as tests/hedronite_grader.tftest.hcl by curriculum/week1/tf/stage.sh.
+# Offline: mock_provider ⟹ no cloud credentials, no cloud calls, no cost. Terraform >= 1.7.
 
 mock_provider "aws" {}
 

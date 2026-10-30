@@ -1,5 +1,5 @@
 # Lab 08 — IAM role, policy and instance profile wired to EC2  ·  grader
-# Offline: mock_provider means no AWS credentials, no network, no cost. Terraform >= 1.7.
+# Offline: mock_provider means no cloud credentials, no cloud calls, no cost. Terraform >= 1.7.
 # Every run applies against the MOCK provider only: nothing is created in AWS.
 # Note: the upstream lab as shipped already satisfies these checks (see curriculum/README.md).
 

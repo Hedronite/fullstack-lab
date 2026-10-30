@@ -1,8 +1,8 @@
 # Lab 02 — Dynamic Config: count -> for_each  ·  grader
-# Staged next to its upstream lab by curriculum/week1/tf/stage.sh.
+# Staged as tests/hedronite_grader.tftest.hcl by curriculum/week1/tf/stage.sh.
 # Run with: terraform init && terraform test
 #
-# Offline by construction: mock_provider means NO AWS credentials, NO network, NO cost.
+# Offline by construction: mock_provider means NO cloud credentials, NO cloud calls, NO cost.
 # Requires Terraform >= 1.7 for mock_provider.
 
 mock_provider "aws" {}

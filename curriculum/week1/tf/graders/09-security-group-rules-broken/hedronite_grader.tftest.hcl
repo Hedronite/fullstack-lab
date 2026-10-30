@@ -1,5 +1,5 @@
 # Lab 09 — Security group with separate rule resources  ·  grader
-# Offline: mock_provider ⟹ no credentials, no network, no cost. Terraform >= 1.7.
+# Offline: mock_provider ⟹ no cloud credentials, no cloud calls, no cost. Terraform >= 1.7.
 # Runs use `command = apply` against the MOCK provider (nothing is created in AWS):
 # ingress/egress are computed on aws_security_group, so at plan they are unknown
 # and the inline-vs-separate check cannot be evaluated. The mock defaults below

@@ -1,5 +1,5 @@
 # Lab 04 — Remote state backend  ·  grader  (PARTIAL - read the scope note)
-# Staged next to its upstream lab by curriculum/week1/tf/stage.sh.
+# Staged as tests/hedronite_grader.tftest.hcl by curriculum/week1/tf/stage.sh.
 
 mock_provider "aws" {}
 

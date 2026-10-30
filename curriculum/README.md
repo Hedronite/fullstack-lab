@@ -6,10 +6,10 @@ into this repo; they are referenced through a git submodule.
 | path | what |
 |---|---|
 | `upstream/tfpro-labs` | submodule: [Hedronite/tfpro-labs](https://github.com/Hedronite/tfpro-labs), a fork of [lance0821/tfpro-labs](https://github.com/lance0821/tfpro-labs), pinned to `a96cfa3` |
-| `week1/tf/graders/<lab>/basic.tftest.hcl` | our `terraform test` grader for each lab |
-| `week1/tf/labs.txt` | grader → upstream lab dir map |
-| `week1/tf/stage.sh` | copy labs from the submodule into a workspace and drop the graders into `tests/` |
-| `week1/tf/grade.sh` | `terraform init` + `terraform test` in each staged lab, one `RESULT` line each |
+| `week1/tf/graders/<lab>/hedronite_grader.tftest.hcl` | our `terraform test` grader for each lab, written here (not derived from upstream test files) |
+| `week1/tf/labs.txt` | grader → upstream lab dir map, plus lab type (`fix` / `explain`) |
+| `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
+| `week1/tf/grade.sh` | `terraform init -backend=false` + `terraform test` of our grader only, in each staged lab, one `RESULT` line each |
 | `week1/tf/logs/` | grader run logs |
 
 ## License note
@@ -30,16 +30,41 @@ curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf 07
 ```
 
 `stage.sh` never overwrites a lab dir that already exists in the destination
-(set `STAGE_FORCE=1` to restage from scratch); it always refreshes the grader.
-Graders use `mock_provider "aws"`: no credentials, no network, no cost. They need
-Terraform >= 1.7. Labs are RED as shipped, by design, except as noted below.
+(set `STAGE_FORCE=1` to restage from scratch); it always refreshes our grader.
+Some upstream labs ship their own `tests/*.tftest.hcl`; those are left in place
+and `grade.sh` runs only `tests/hedronite_grader.tftest.hcl` (`-filter`).
+
+Graders use `mock_provider "aws"`: no cloud credentials and no cloud calls.
+`grade.sh` also clears the environment before calling Terraform (only `HOME`,
+`PATH` and `TF_PLUGIN_CACHE_DIR` pass through) and skips backend init. `init`
+still downloads providers from the Terraform registry. Terraform >= 1.7.
+
+## Lab types
+
+`labs.txt` gives each lab a type; `stage.sh` and `grade.sh` print it.
+
+| type | as shipped | grader | student task |
+|---|---|---|---|
+| `fix` | broken | FAILs until fixed | fix `main.tf` per the lab README until the grader PASSes |
+| `explain` | already correct | PASSes as shipped; it is a regression check | do not change the config; write up why it is correct (which README task each block satisfies and what would break without it) |
+
+Labs 07, 08 and 09 are `explain` labs: their upstream configs already ship in the
+correct end state, so a grader cannot turn them red. Their graders stay as
+regression checks: a FAIL on 07–09 means the staged config drifted, not that
+the student has work left. The graders were also checked against deliberately
+broken scratch copies of 08 and 09 and fail them (see `week1/tf/logs/`).
+
+Lab 09's upstream README has a "Starting assumptions" section copied from an S3
+lab (bucket versioning, lifecycle, tags). It does not describe the
+security-group lab; use its Tasks and Success criteria instead.
 
 ## Grader status against the labs as shipped (`a96cfa3`)
 
-| lab | as shipped | note |
-|---|---|---|
-| 01–05 | FAIL | intended: the lab is broken until the student fixes it (04 fails at init: variables in the backend block) |
-| 06 | PASS | the shipped config already has distinct aliased providers; README tasks 2–3 (child module with `configuration_aliases`) are not checkable by the grader |
-| 07 | PASS | the shipped config already has the validation, precondition and check the README asks for |
-| 08 | PASS | the shipped config is already correctly wired; a deliberately broken copy FAILs |
-| 09 | PASS | the shipped config already uses separate rule resources keyed by port; a deliberately broken copy FAILs. Its README "Starting assumptions" section describes a different (S3) lab |
+| lab | type | as shipped | note |
+|---|---|---|---|
+| 01–03, 05 | fix | FAIL | intended |
+| 04 | fix | PASS | the break is variables in the `backend` block, which `grade.sh` skips (`init -backend=false`); the grader only checks that remote values are surfaced. Run plain `terraform init` by hand to see the break |
+| 06 | fix | PASS | the shipped config already has distinct aliased providers; the grader only checks distinct aliased regions; README tasks 2–3 (child module with `configuration_aliases`) are not graded, review by hand |
+| 07 | explain | PASS | validation, precondition and check already present |
+| 08 | explain | PASS | IAM role, policy, instance profile and EC2 already wired; broken copy FAILs |
+| 09 | explain | PASS | separate rule resources keyed by port already; broken copy FAILs |

@@ -1,5 +1,5 @@
 # Lab 06 — Provider aliasing across regions  ·  grader
-# Offline: mock_provider ⟹ no credentials, no network, no cost. Terraform >= 1.7.
+# Offline: mock_provider ⟹ no cloud credentials, no cloud calls, no cost. Terraform >= 1.7.
 # Coverage gap: README tasks 2-3 (pass both providers into a child module that
 # declares configuration_aliases) are NOT checked; a test file cannot address a
 # module whose name the student chooses. Review those by hand.

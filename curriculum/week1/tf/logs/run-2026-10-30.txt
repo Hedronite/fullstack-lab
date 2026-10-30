@@ -1,20 +1,20 @@
-# Week-1 terraform grader run, 2026-10-30
-# terraform 1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS),
-# env -i with only HOME/PATH/TF_PLUGIN_CACHE_DIR/TF_IN_AUTOMATION: no cloud credentials.
-# Labs from the submodule at a96cfa3, staged with stage.sh into a scratch dir outside the repo.
-# SET unfixed : labs 01-09 as shipped upstream
-# SET fixed   : 08 and 09 in a correct state (as shipped: both are already correct upstream)
-# SET mut     : 08 and 09 deliberately broken in the scratch copy, to show the graders bite:
+# Week-1 terraform grader run, 2026-10-30 (graders as committed alongside this log)
+# terraform 1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS).
+# grade.sh clears the environment itself (HOME/PATH/TF_PLUGIN_CACHE_DIR only) and runs
+# `init -backend=false`; a dummy AWS_ACCESS_KEY_ID was set in the caller to show it does not leak.
+# Only tests/hedronite_grader.tftest.hcl is run in each lab (upstream test files are ignored).
+# SET unfixed : labs 01-09 as shipped upstream (submodule a96cfa3)
+# SET mut     : 08 and 09 deliberately broken in a scratch copy outside the repo:
 #   08: trust principal ec2.amazonaws.com -> lambda.amazonaws.com; iam_instance_profile removed from aws_instance.app
 #   09: inline egress block added to aws_security_group.web; ingress rules switched from for_each-by-port to count
 ================ SET unfixed
-########## 01-lifecycle-cli-broken
-tests/basic.tftest.hcl... in progress
+########## 01-lifecycle-cli-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
   run "bucket_name_was_actually_replaced"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 15, in run "bucket_name_was_actually_replaced":
+  on tests/hedronite_grader.tftest.hcl line 15, in run "bucket_name_was_actually_replaced":
   15:     condition     = aws_s3_bucket.logs.bucket != "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
     ├────────────────
     │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
@@ -25,7 +25,7 @@ it with a globally unique name.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 24, in run "bucket_name_is_a_legal_s3_name":
+  on tests/hedronite_grader.tftest.hcl line 24, in run "bucket_name_is_a_legal_s3_name":
   24:     condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", aws_s3_bucket.logs.bucket))
     ├────────────────
     │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
@@ -35,7 +35,7 @@ and must start and end alphanumeric.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 29, in run "bucket_name_is_a_legal_s3_name":
+  on tests/hedronite_grader.tftest.hcl line 29, in run "bucket_name_is_a_legal_s3_name":
   29:     condition     = !can(regex("[A-Z_]", aws_s3_bucket.logs.bucket))
     ├────────────────
     │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
@@ -43,18 +43,18 @@ Error: Test assertion failed
 S3 bucket names cannot contain uppercase letters or underscores. This is
 rejected by the API, not by Terraform - a plan will pass and the apply will
 fail.
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 0 passed, 2 failed.
-RESULT 01-lifecycle-cli-broken              FAIL
-########## 02-dynamic-config-broken
-tests/basic.tftest.hcl... in progress
+RESULT 01-lifecycle-cli-broken              fix     FAIL 
+########## 02-dynamic-config-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
   run "resources_are_no_longer_index_addressed"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 16, in run "resources_are_no_longer_index_addressed":
+  on tests/hedronite_grader.tftest.hcl line 16, in run "resources_are_no_longer_index_addressed":
   16:     condition     = !try(aws_s3_bucket.this[0].bucket != "", false)
     ├────────────────
     │ aws_s3_bucket.this[0].bucket is "tfpro-dynamic-logs"
@@ -65,7 +65,7 @@ the defect this lab exists to remove.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 21, in run "resources_are_no_longer_index_addressed":
+  on tests/hedronite_grader.tftest.hcl line 21, in run "resources_are_no_longer_index_addressed":
   21:     condition     = try(aws_s3_bucket.this["logs"].bucket != "", false)
     ├────────────────
     │ aws_s3_bucket.this is tuple with 3 elements
@@ -76,7 +76,7 @@ so that 'logs' is a stable address independent of ordering.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 30, in run "input_is_map_shaped_with_stable_keys":
+  on tests/hedronite_grader.tftest.hcl line 30, in run "input_is_map_shaped_with_stable_keys":
   30:     condition     = try(length(keys(var.buckets)) == 3, false)
     ├────────────────
     │ var.buckets is list of object with 3 elements
@@ -86,7 +86,7 @@ list - if this errors, the input is still list-shaped.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 35, in run "input_is_map_shaped_with_stable_keys":
+  on tests/hedronite_grader.tftest.hcl line 35, in run "input_is_map_shaped_with_stable_keys":
   35:     condition     = try(toset(keys(var.buckets)) == toset(["logs", "assets", "archive"]), false)
     ├────────────────
     │ var.buckets is list of object with 3 elements
@@ -97,7 +97,7 @@ what make the addresses stable, so they must carry the identity.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 44, in run "outputs_are_map_shaped":
+  on tests/hedronite_grader.tftest.hcl line 44, in run "outputs_are_map_shaped":
   44:     condition     = try(output.bucket_names["logs"] != "", false)
     ├────────────────
     │ output.bucket_names is tuple with 3 elements
@@ -108,24 +108,24 @@ removed.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 49, in run "outputs_are_map_shaped":
+  on tests/hedronite_grader.tftest.hcl line 49, in run "outputs_are_map_shaped":
   49:     condition     = try(toset(keys(output.bucket_names)) == toset(["logs", "assets", "archive"]), false)
     ├────────────────
     │ output.bucket_names is tuple with 3 elements
 
 output.bucket_names should expose exactly the three configured keys.
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 0 passed, 3 failed.
-RESULT 02-dynamic-config-broken             FAIL
-########## 03-state-import-moved-broken
-tests/basic.tftest.hcl... in progress
+RESULT 02-dynamic-config-broken             fix     FAIL 
+########## 03-state-import-moved-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
   run "resource_moved_out_of_the_root_module"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 14, in run "resource_moved_out_of_the_root_module":
+  on tests/hedronite_grader.tftest.hcl line 14, in run "resource_moved_out_of_the_root_module":
   14:     condition     = !try(aws_s3_bucket.logs.bucket != "", false)
     ├────────────────
     │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-AN-EXISTING-BUCKET-NAME"
@@ -134,27 +134,26 @@ aws_s3_bucket.logs still resolves at the ROOT. Task 2 asks you to refactor it
 into a child module - the resource should now live at
 module.<name>.aws_s3_bucket.logs.
   run "consumers_did_not_break"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 1 passed, 1 failed.
-RESULT 03-state-import-moved-broken         FAIL
-########## 04-remote-state-backend-broken
+RESULT 03-state-import-moved-broken         fix     FAIL 
+########## 04-remote-state-backend-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "consumed_remote_values_are_surfaced"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
 
-Error: Variables not allowed
-
-  on main.tf line 18, in terraform:
-  18:     key    = local.network_state_key
-
-Variables may not be used here.
-RESULT 04-remote-state-backend-broken       FAIL
-########## 05-workspaces-cross-stack-broken
-tests/basic.tftest.hcl... in progress
+Success! 1 passed, 0 failed.
+RESULT 04-remote-state-backend-broken       fix     PASS 
+########## 05-workspaces-cross-stack-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
   run "environment_tracks_the_workspace"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 10, in run "environment_tracks_the_workspace":
+  on tests/hedronite_grader.tftest.hcl line 10, in run "environment_tracks_the_workspace":
   10:     condition     = try(output.selected_environment == terraform.workspace, false)
     ├────────────────
     │ output.selected_environment is "dev"
@@ -164,13 +163,13 @@ output.selected_environment does not equal terraform.workspace. Task 1 asks
 that outputs reflect the selected workspace rather than a hardcoded
 environment name.
   run "instance_type_is_surfaced"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 1 passed, 1 failed.
-RESULT 05-workspaces-cross-stack-broken     FAIL
-########## 06-providers-alias-auth-broken
-tests/basic.tftest.hcl... in progress
+RESULT 05-workspaces-cross-stack-broken     fix     FAIL 
+########## 06-providers-alias-auth-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
   run "both_regions_are_surfaced"... pass
 
 Warning: Deprecated attribute
@@ -195,69 +194,51 @@ details.
 
 (and 3 more similar warnings elsewhere)
 
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
 
 Success! 2 passed, 0 failed.
-RESULT 06-providers-alias-auth-broken       PASS
-########## 07-validation-checks-tests-broken
-tests/basic.tftest.hcl... in progress
-  run "default_configuration_is_valid"... pass
-  run "prod_requires_safer_instance_type"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
+RESULT 06-providers-alias-auth-broken       fix     PASS 
+########## 07-validation-checks-tests-broken [explain]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "unknown_environment_is_rejected_by_validation"... pass
+  run "too_short_name_prefix_is_rejected_by_validation"... pass
+  run "prod_on_t3_micro_is_blocked_by_precondition"... pass
+  run "prod_on_a_larger_type_goes_through"... pass
+  run "short_but_valid_prefix_only_warns"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
 
-Success! 2 passed, 0 failed.
-RESULT 07-validation-checks-tests-broken    PASS
-########## 08-iam-ec2-broken
-tests/basic.tftest.hcl... in progress
+Success! 5 passed, 0 failed.
+RESULT 07-validation-checks-tests-broken    explain PASS (expected: ships correct; now write up why it is correct)
+########## 08-iam-ec2-broken [explain]
+tests/hedronite_grader.tftest.hcl... in progress
   run "iam_chain_is_wired_to_ec2"... pass
   run "policy_is_attached_to_the_role"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
 
 Success! 2 passed, 0 failed.
-RESULT 08-iam-ec2-broken                    PASS
-########## 09-security-group-rules-broken
-tests/basic.tftest.hcl... in progress
+RESULT 08-iam-ec2-broken                    explain PASS (expected: ships correct; now write up why it is correct)
+########## 09-security-group-rules-broken [explain]
+tests/hedronite_grader.tftest.hcl... in progress
   run "rules_are_separate_resources_not_inline_blocks"... pass
   run "ingress_rules_are_keyed_by_every_allowed_port"... pass
   run "security_group_id_is_published"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
 
 Success! 3 passed, 0 failed.
-RESULT 09-security-group-rules-broken       PASS
-SET unfixed fails=5
-================ SET fixed
-########## 08-iam-ec2-broken
-tests/basic.tftest.hcl... in progress
-  run "iam_chain_is_wired_to_ec2"... pass
-  run "policy_is_attached_to_the_role"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
-
-Success! 2 passed, 0 failed.
-RESULT 08-iam-ec2-broken                    PASS
-########## 09-security-group-rules-broken
-tests/basic.tftest.hcl... in progress
-  run "rules_are_separate_resources_not_inline_blocks"... pass
-  run "ingress_rules_are_keyed_by_every_allowed_port"... pass
-  run "security_group_id_is_published"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... pass
-
-Success! 3 passed, 0 failed.
-RESULT 09-security-group-rules-broken       PASS
-SET fixed fails=0
+RESULT 09-security-group-rules-broken       explain PASS (expected: ships correct; now write up why it is correct)
+SET unfixed fails=4
 ================ SET mut
-########## 08-iam-ec2-broken
-tests/basic.tftest.hcl... in progress
+########## 08-iam-ec2-broken [explain]
+tests/hedronite_grader.tftest.hcl... in progress
   run "iam_chain_is_wired_to_ec2"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 22, in run "iam_chain_is_wired_to_ec2":
+  on tests/hedronite_grader.tftest.hcl line 22, in run "iam_chain_is_wired_to_ec2":
   22:     condition = anytrue([
   23:       for s in data.aws_iam_policy_document.trust.statement :
   24:       s.effect == "Allow" && contains(s.actions, "sts:AssumeRole") &&
@@ -271,26 +252,26 @@ ec2.amazonaws.com.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 47, in run "iam_chain_is_wired_to_ec2":
+  on tests/hedronite_grader.tftest.hcl line 47, in run "iam_chain_is_wired_to_ec2":
   47:     condition     = aws_instance.app.iam_instance_profile == aws_iam_instance_profile.app.name
     ├────────────────
     │ aws_iam_instance_profile.app.name is "tfpro-instance-profile"
-    │ aws_instance.app.iam_instance_profile is "wdaqdb9f"
+    │ aws_instance.app.iam_instance_profile is "55thoyzf"
 
 aws_instance.app must use aws_iam_instance_profile.app.
   run "policy_is_attached_to_the_role"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 1 passed, 1 failed.
-RESULT 08-iam-ec2-broken                    FAIL
-########## 09-security-group-rules-broken
-tests/basic.tftest.hcl... in progress
+RESULT 08-iam-ec2-broken                    explain FAIL (regression: an explain lab should pass as shipped)
+########## 09-security-group-rules-broken [explain]
+tests/hedronite_grader.tftest.hcl... in progress
   run "rules_are_separate_resources_not_inline_blocks"... fail
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 30, in run "rules_are_separate_resources_not_inline_blocks":
+  on tests/hedronite_grader.tftest.hcl line 30, in run "rules_are_separate_resources_not_inline_blocks":
   30:     condition     = length(aws_security_group.web.egress) == 0
     ├────────────────
     │ aws_security_group.web.egress is set of object with 1 element
@@ -301,7 +282,7 @@ separate aws_vpc_security_group_egress_rule resource.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 49, in run "ingress_rules_are_keyed_by_every_allowed_port":
+  on tests/hedronite_grader.tftest.hcl line 49, in run "ingress_rules_are_keyed_by_every_allowed_port":
   49:     condition     = try(alltrue([for p in var.allowed_ports : contains(keys(aws_vpc_security_group_ingress_rule.web), tostring(p))]), false)
     ├────────────────
     │ aws_vpc_security_group_ingress_rule.web is tuple with 3 elements
@@ -313,7 +294,7 @@ rest and Terraform destroys and recreates unrelated rules.
 
 Error: Test assertion failed
 
-  on tests/basic.tftest.hcl line 54, in run "ingress_rules_are_keyed_by_every_allowed_port":
+  on tests/hedronite_grader.tftest.hcl line 54, in run "ingress_rules_are_keyed_by_every_allowed_port":
   54:     condition     = try(alltrue([for r in values(aws_vpc_security_group_ingress_rule.web) : r.security_group_id == aws_security_group.web.id]), false)
     ├────────────────
     │ aws_security_group.web.id is "sg-0123456789abcdef0"
@@ -321,9 +302,9 @@ Error: Test assertion failed
 
 Every ingress rule must reference aws_security_group.web.id.
   run "security_group_id_is_published"... pass
-tests/basic.tftest.hcl... tearing down
-tests/basic.tftest.hcl... fail
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 1 passed, 2 failed.
-RESULT 09-security-group-rules-broken       FAIL
+RESULT 09-security-group-rules-broken       explain FAIL (regression: an explain lab should pass as shipped)
 SET mut fails=2

@@ -1,8 +1,8 @@
 # Lab 01 — Lifecycle and CLI  ·  grader
-# Staged next to its upstream lab by curriculum/week1/tf/stage.sh.
+# Staged as tests/hedronite_grader.tftest.hcl by curriculum/week1/tf/stage.sh.
 # Run with: terraform init && terraform test
 #
-# Offline by construction: mock_provider means NO AWS credentials, NO network, NO cost.
+# Offline by construction: mock_provider means NO cloud credentials, NO cloud calls, NO cost.
 # Requires Terraform >= 1.7 for mock_provider. The lab's versions.tf allows >= 1.6 —
 # on 1.6 exactly, this file will not parse. Both lab-image versions (1.9.8, 1.10.5) are fine.
 
