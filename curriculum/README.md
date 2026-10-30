@@ -33,11 +33,18 @@ curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf 07
 (set `STAGE_FORCE=1` to restage from scratch); it always refreshes our grader.
 Some upstream labs ship their own `tests/*.tftest.hcl`; those are left in place
 and `grade.sh` runs only `tests/hedronite_grader.tftest.hcl` (`-filter`).
+In particular, staged lab 07 still contains upstream's own `tests/basic.tftest.hcl`;
+a plain `terraform test` there also runs that file and fails on its
+`output.<name>.value` bug, so grade lab 07 with `grade.sh`.
 
 Graders use `mock_provider "aws"`: no cloud credentials and no cloud calls.
-`grade.sh` also clears the environment before calling Terraform (only `HOME`,
-`PATH` and `TF_PLUGIN_CACHE_DIR` pass through) and skips backend init. `init`
-still downloads providers from the Terraform registry. Terraform >= 1.7.
+`grade.sh` also clears the environment before calling Terraform: only `PATH`,
+a throwaway `HOME` (removed on exit), `TF_CLI_CONFIG_FILE=/dev/null`,
+`TF_IN_AUTOMATION=1` and, if set, `TF_PLUGIN_CACHE_DIR` pass through. It skips
+backend init (`init -backend=false`), and a static pre-check fails any lab whose
+`backend "<type>" {}` block references `var.*` or `local.*` (Terraform's
+"Variables not allowed"), without ever configuring a backend. `init` still
+downloads providers from the Terraform registry. Terraform >= 1.7.
 
 ## Lab types
 
@@ -63,7 +70,7 @@ security-group lab; use its Tasks and Success criteria instead.
 | lab | type | as shipped | note |
 |---|---|---|---|
 | 01–03, 05 | fix | FAIL | intended |
-| 04 | fix | PASS | the break is variables in the `backend` block, which `grade.sh` skips (`init -backend=false`); the grader only checks that remote values are surfaced. Run plain `terraform init` by hand to see the break |
+| 04 | fix | FAIL | `grade.sh`'s backend pre-check flags `local.network_state_key` in the `backend "s3"` block; the grader itself checks that remote values are surfaced |
 | 06 | fix | PASS | the shipped config already has distinct aliased providers; the grader only checks distinct aliased regions; README tasks 2–3 (child module with `configuration_aliases`) are not graded, review by hand |
 | 07 | explain | PASS | validation, precondition and check already present |
 | 08 | explain | PASS | IAM role, policy, instance profile and EC2 already wired; broken copy FAILs |

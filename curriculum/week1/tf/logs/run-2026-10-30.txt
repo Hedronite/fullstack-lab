@@ -1,12 +1,14 @@
 # Week-1 terraform grader run, 2026-10-30 (graders as committed alongside this log)
 # terraform 1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS).
-# grade.sh clears the environment itself (HOME/PATH/TF_PLUGIN_CACHE_DIR only) and runs
-# `init -backend=false`; a dummy AWS_ACCESS_KEY_ID was set in the caller to show it does not leak.
-# Only tests/hedronite_grader.tftest.hcl is run in each lab (upstream test files are ignored).
+# grade.sh clears the environment itself (PATH, throwaway HOME, TF_CLI_CONFIG_FILE=/dev/null,
+# TF_IN_AUTOMATION, TF_PLUGIN_CACHE_DIR), runs `init -backend=false`, and statically fails
+# backend blocks that reference var./local. A dummy AWS_ACCESS_KEY_ID was set in the caller
+# to show it does not leak. Only tests/hedronite_grader.tftest.hcl is run in each lab.
 # SET unfixed : labs 01-09 as shipped upstream (submodule a96cfa3)
 # SET mut     : 08 and 09 deliberately broken in a scratch copy outside the repo:
 #   08: trust principal ec2.amazonaws.com -> lambda.amazonaws.com; iam_instance_profile removed from aws_instance.app
 #   09: inline egress block added to aws_security_group.web; ingress rules switched from for_each-by-port to count
+# SET probe04 : 04 with only the backend key changed to a literal (backend check should no longer fire)
 ================ SET unfixed
 ########## 01-lifecycle-cli-broken [fix]
 tests/hedronite_grader.tftest.hcl... in progress
@@ -140,13 +142,15 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 1 passed, 1 failed.
 RESULT 03-state-import-moved-broken         fix     FAIL 
 ########## 04-remote-state-backend-broken [fix]
+backend check: FAIL - a backend block cannot use variables or locals (Terraform: "Variables not allowed"). Use literals or -backend-config:
+  /tmp/tfg/unfixed/04-remote-state-backend-broken/main.tf:18:     key    = local.network_state_key
 tests/hedronite_grader.tftest.hcl... in progress
   run "consumed_remote_values_are_surfaced"... pass
 tests/hedronite_grader.tftest.hcl... tearing down
 tests/hedronite_grader.tftest.hcl... pass
 
 Success! 1 passed, 0 failed.
-RESULT 04-remote-state-backend-broken       fix     PASS 
+RESULT 04-remote-state-backend-broken       fix     FAIL 
 ########## 05-workspaces-cross-stack-broken [fix]
 tests/hedronite_grader.tftest.hcl... in progress
   run "environment_tracks_the_workspace"... fail
@@ -230,7 +234,7 @@ tests/hedronite_grader.tftest.hcl... pass
 
 Success! 3 passed, 0 failed.
 RESULT 09-security-group-rules-broken       explain PASS (expected: ships correct; now write up why it is correct)
-SET unfixed fails=4
+SET unfixed fails=5
 ================ SET mut
 ########## 08-iam-ec2-broken [explain]
 tests/hedronite_grader.tftest.hcl... in progress
@@ -256,7 +260,7 @@ Error: Test assertion failed
   47:     condition     = aws_instance.app.iam_instance_profile == aws_iam_instance_profile.app.name
     ├────────────────
     │ aws_iam_instance_profile.app.name is "tfpro-instance-profile"
-    │ aws_instance.app.iam_instance_profile is "55thoyzf"
+    │ aws_instance.app.iam_instance_profile is "rc10aybz"
 
 aws_instance.app must use aws_iam_instance_profile.app.
   run "policy_is_attached_to_the_role"... pass
@@ -308,3 +312,13 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 1 passed, 2 failed.
 RESULT 09-security-group-rules-broken       explain FAIL (regression: an explain lab should pass as shipped)
 SET mut fails=2
+================ SET probe04
+########## 04-remote-state-backend-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "consumed_remote_values_are_surfaced"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 1 passed, 0 failed.
+RESULT 04-remote-state-backend-broken       fix     PASS 
+SET probe04 fails=0
