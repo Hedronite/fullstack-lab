@@ -139,6 +139,17 @@ By default only `/workspace` is mounted. Set `LAB_LABS` and/or `LAB_TOMES` when 
 
 Read-only is deliberate for everything except `/workspace`. The container can use your credentials and your corpus; it cannot alter either.
 
+### Dev Container
+
+`.devcontainer/devcontainer.json` mounts only `~/lab-workspaces/default` at
+`/workspace`: no cloud credentials, no kubeconfig, no SSH keys. To opt in, pick
+the **hedronite-devops-lab (with credentials)** configuration
+(`.devcontainer/with-credentials/devcontainer.json`) when you reopen in a
+container. It adds read-only `~/.aws`, `~/.config/gcloud`, `~/.azure`, `~/.kube`
+and `~/.ssh`; every one of those directories must exist on the host, so trim the
+`mounts` list in that file to what you have. Practice corpora are not mounted in
+the Dev Container; use `lab` with `LAB_LABS` / `LAB_TOMES` for those.
+
 ## Cloud credentials
 
 The image contains no credentials and never will. No Dockerfile layer copies a secret, and the `.gitignore` blocks common leak paths. Credentials reach the container only through the read-only mounts above.

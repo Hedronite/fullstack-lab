@@ -1,0 +1,17 @@
+{
+  "name": "hedronite-devops-lab (with credentials)",
+  "build": {
+    "dockerfile": "../../Dockerfile",
+    "context": "../.."
+  },
+  "remoteUser": "root",
+  "workspaceMount": "source=${localEnv:HOME}/lab-workspaces/default,target=/workspace,type=bind",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly",
+    "source=${localEnv:HOME}/.config/gcloud,target=/root/.config/gcloud,type=bind,readonly",
+    "source=${localEnv:HOME}/.azure,target=/root/.azure,type=bind,readonly",
+    "source=${localEnv:HOME}/.kube,target=/root/.kube,type=bind,readonly",
+    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly"
+  ]
+}

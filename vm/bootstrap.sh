@@ -4,10 +4,12 @@
 #   LAB_IMAGE=1 ./vm/bootstrap.sh <p>      also build the full lab image (slow)
 #   LAB_INSECURE_REGISTRY=host:port ...    trust a plain-HTTP registry (optional)
 #   LAB_WORKSPACE=<dir>                    host dir mounted rw for lab work
-#                                          (default ~/lab-workspaces; the repo is mounted ro)
+#                                          (default ~/lab-workspaces/default; the repo is mounted ro)
+#   LAB_IMAGE_REF=<ref>                    lab image for vm/labs.sh when LAB_IMAGE is not 1;
+#                                          must carry a tag or digest (default: pinned below)
 set -euo pipefail
 profile="${1:?usage: bootstrap.sh <profile>}"
-if [[ ! "$profile" =~ ^[A-Za-z0-9._-]+$ || "$profile" == *..* ]]; then
+if [[ ! "$profile" =~ ^[A-Za-z0-9._-]+$ || "$profile" == *..* || "$profile" == . ]]; then
   echo "invalid profile name: $profile" >&2; exit 2
 fi
 if [[ -n "${LAB_INSECURE_REGISTRY:-}" && ! "${LAB_INSECURE_REGISTRY}" =~ ^[A-Za-z0-9.-]+:[0-9]{1,5}$ ]]; then
@@ -17,6 +19,8 @@ here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(cd "$here/.." && pwd)"
 chome="${COLIMA_HOME:-$HOME/.colima}"
 ctx="colima-$profile"
+# Published lab image, pinned by digest (tag v0.1.1). Never an implicit :latest.
+LAB_IMAGE_PINNED="ghcr.io/hedronite/lab:v0.1.1@sha256:875dd541c5f3eae9b26b3b9f36ae5ff09a2ec7d58f3228bcf752503747c48021"
 
 if colima list 2>/dev/null | awk 'NR>1{print $1}' | grep -qx "$profile"; then
   echo "profile $profile already exists; refusing to touch it" >&2; exit 1
@@ -24,7 +28,7 @@ fi
 
 mkdir -p "$chome/$profile"
 cfg="$chome/$profile/colima.yaml"
-ws="${LAB_WORKSPACE:-$HOME/lab-workspaces}"
+ws="${LAB_WORKSPACE:-$HOME/lab-workspaces/default}"
 mkdir -p "$ws"; ws="$(cd "$ws" && pwd)"
 # Mount only the repo (read-only) and the lab workspace (read-write), not all of $HOME.
 awk -v repo="$repo" -v ws="$ws" '
@@ -65,5 +69,6 @@ if [[ "${LAB_IMAGE:-0}" == 1 ]]; then
   docker --context "$ctx" run --rm lab:local zsh -c 'terraform version | head -1; kubectl version --client; helm version --short; go version; rustc --version; uv --version'
 fi
 echo "== labs"
-"$here/labs.sh" "$ctx" "$( [[ "${LAB_IMAGE:-0}" == 1 ]] && echo lab:local || echo ghcr.io/hedronite/lab:latest )" "$repo"
+if [[ "${LAB_IMAGE:-0}" == 1 ]]; then img=lab:local; else img="${LAB_IMAGE_REF:-$LAB_IMAGE_PINNED}"; fi
+LAB_WORKSPACE="$ws" "$here/labs.sh" "$ctx" "$img" "$repo"
 echo "== bootstrap $profile OK"
