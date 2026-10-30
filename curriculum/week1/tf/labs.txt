@@ -1,0 +1,10 @@
+# grader dir (graders/<name>)            lab dir in the submodule (curriculum/upstream/tfpro-labs/...)
+01-lifecycle-cli-broken                  labs/01-lifecycle-cli-broken
+02-dynamic-config-broken                 labs/02-dynamic-config-broken
+03-state-import-moved-broken             labs/03-state-import-moved-broken
+04-remote-state-backend-broken           labs/04-remote-state-backend-broken
+05-workspaces-cross-stack-broken         labs/05-workspaces-cross-stack-broken
+06-providers-alias-auth-broken           labs/06-providers-alias-auth-broken
+07-validation-checks-tests-broken        labs/07-validation-checks-tests-broken
+08-iam-ec2-broken                        labs/08-iam-ec2-broken
+09-security-group-rules-broken           labs/09-security-group-rules-broken
