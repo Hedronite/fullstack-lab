@@ -6,13 +6,5 @@
   "remoteUser": "root",
   "workspaceMount": "source=${localEnv:HOME}/lab-workspaces/default,target=/workspace,type=bind",
   "workspaceFolder": "/workspace",
-  "mounts": [
-    "source=${localEnv:HOME}/.aws,target=/root/.aws,type=bind,readonly",
-    "source=${localEnv:HOME}/.config/gcloud,target=/root/.config/gcloud,type=bind,readonly",
-    "source=${localEnv:HOME}/.azure,target=/root/.azure,type=bind,readonly",
-    "source=${localEnv:HOME}/.kube,target=/root/.kube,type=bind,readonly",
-    "source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind,readonly",
-    "source=${localEnv:HOME}/Obsidian/Atrium/Atrium/Archmagus-Stack/Sovereign-Bootcamp,target=/labs,type=bind,readonly",
-    "source=${localEnv:HOME}/Obsidian/Atrium/Atrium/Archmagus-Stack/09-Tomes,target=/tomes,type=bind,readonly"
-  ]
+  "mounts": []
 }
