@@ -1,55 +1,100 @@
-# lab 01 CI gate, 2026-10-30 20:36 EDT, Terraform v1.16.0 (host run before the lab moved to 01-lifecycle-guardrails; the lab now pins Terraform 1.10.5 and hashicorp/aws 6.71.0, the image hedronite/fullstack-lab-tf:1.10.5-aws)
-================ reference (clean copy)
-########## 01-lifecycle-cli-broken [fix]
+# lab 01 CI gate, 2026-10-31 01:07 UTC, Terraform v1.10.5
+GATE grader: check.sh copy matches graders/01-lifecycle-guardrails
+================ reference
 tests/hedronite_grader.tftest.hcl... in progress
-  run "bucket_name_was_actually_replaced"... pass
-  run "bucket_name_is_a_legal_s3_name"... pass
+  run "ledger_has_a_real_name"... pass
+  run "edge_group_can_be_replaced_before_destroy"... pass
+
+Warning: Resource targeting is in effect
+
+You are creating a plan with the -target option, which means that the result
+of this plan may not represent all of the changes requested by the current
+configuration.
+
+The -target option is not for routine use, and is provided only for
+exceptional situations such as recovering from errors or mistakes, or when
+Terraform specifically suggests to use it as part of an error message.
+
+Warning: Applied changes may be incomplete
+
+The plan was created with the -target option in effect, so some changes
+requested in the configuration may have been ignored and the output values
+may not be fully updated. Run the following command to verify that no other
+changes are pending:
+    terraform plan
+
+Note that the -target option is not suitable for routine use, and is provided
+only for exceptional situations such as recovering from errors or mistakes,
+or when Terraform specifically suggests to use it as part of an error
+message.
+
 tests/hedronite_grader.tftest.hcl... tearing down
 tests/hedronite_grader.tftest.hcl... pass
 
 Success! 2 passed, 0 failed.
-RESULT 01-lifecycle-cli-broken              fix     PASS 
-GATE reference grade.sh rc=0, expected rc=0 (PASS)
-================ starter (clean copy)
-########## 01-lifecycle-cli-broken [fix]
+RESULT 01-lifecycle-guardrails fix PASS
+GATE reference check.sh rc=0, expected rc=0 (PASS)
+================ starter
 tests/hedronite_grader.tftest.hcl... in progress
-  run "bucket_name_was_actually_replaced"... fail
+  run "ledger_has_a_real_name"... fail
 
 Error: Test assertion failed
 
-  on tests/hedronite_grader.tftest.hcl line 15, in run "bucket_name_was_actually_replaced":
-  15:     condition     = aws_s3_bucket.logs.bucket != "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+  on tests/hedronite_grader.tftest.hcl line 19, in run "ledger_has_a_real_name":
+  19:     condition     = aws_dynamodb_table.audit_ledger.name != "<hx: name the audit ledger>"
     ├────────────────
+    │ aws_dynamodb_table.audit_ledger.name is "<hx: name the audit ledger>"
 
-
-The placeholder bucket name is still in main.tf. Task 2 asks you to replace
-it with a globally unique name.
-  run "bucket_name_is_a_legal_s3_name"... fail
+Task 2: the ledger still has the <hx: ...> placeholder name.
 
 Error: Test assertion failed
 
-  on tests/hedronite_grader.tftest.hcl line 24, in run "bucket_name_is_a_legal_s3_name":
-  24:     condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", aws_s3_bucket.logs.bucket))
+  on tests/hedronite_grader.tftest.hcl line 24, in run "ledger_has_a_real_name":
+  24:     condition     = can(regex("^[A-Za-z0-9_.-]{3,255}$", aws_dynamodb_table.audit_ledger.name))
     ├────────────────
-    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+    │ aws_dynamodb_table.audit_ledger.name is "<hx: name the audit ledger>"
 
-Bucket name must be 3-63 chars, lowercase alphanumeric plus dots and hyphens,
-and must start and end alphanumeric.
+Task 2: a DynamoDB table name is 3-255 characters of letters, digits, '_',
+'-' and '.'. Plan does not catch this; the API rejects it at apply.
+  run "edge_group_can_be_replaced_before_destroy"... fail
+
+Warning: Resource targeting is in effect
+
+You are creating a plan with the -target option, which means that the result
+of this plan may not represent all of the changes requested by the current
+configuration.
+
+The -target option is not for routine use, and is provided only for
+exceptional situations such as recovering from errors or mistakes, or when
+Terraform specifically suggests to use it as part of an error message.
+
+Warning: Applied changes may be incomplete
+
+The plan was created with the -target option in effect, so some changes
+requested in the configuration may have been ignored and the output values
+may not be fully updated. Run the following command to verify that no other
+changes are pending:
+    terraform plan
+
+Note that the -target option is not suitable for routine use, and is provided
+only for exceptional situations such as recovering from errors or mistakes,
+or when Terraform specifically suggests to use it as part of an error
+message.
 
 Error: Test assertion failed
 
-  on tests/hedronite_grader.tftest.hcl line 29, in run "bucket_name_is_a_legal_s3_name":
-  29:     condition     = !can(regex("[A-Z_]", aws_s3_bucket.logs.bucket))
+  on tests/hedronite_grader.tftest.hcl line 41, in run "edge_group_can_be_replaced_before_destroy":
+  41:     condition     = aws_security_group.ingress_edge.name_prefix == "hx-ingress-edge-"
     ├────────────────
-    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+    │ aws_security_group.ingress_edge.name_prefix is "z50hv23h"
 
-S3 bucket names cannot contain uppercase letters or underscores. This is
-rejected by the API, not by Terraform - a plan will pass and the apply will
-fail.
+Task 5: create_before_destroy needs the old and new group to coexist; a fixed
+`name` cannot. Use name_prefix = "hx-ingress-edge-" instead of name.
+
 tests/hedronite_grader.tftest.hcl... tearing down
 tests/hedronite_grader.tftest.hcl... fail
 
 Failure! 0 passed, 2 failed.
-RESULT 01-lifecycle-cli-broken              fix     FAIL 
-GATE starter grade.sh rc=1, expected rc!=0 (FAIL)
+RESULT 01-lifecycle-guardrails fix FAIL
+GATE starter check.sh rc=1, expected rc!=0 (FAIL)
 GATE OK: reference PASS, starter FAIL

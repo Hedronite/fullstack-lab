@@ -27,7 +27,15 @@ run "ledger_has_a_real_name" {
 }
 
 run "edge_group_can_be_replaced_before_destroy" {
-  command = plan
+  # apply against the mock provider (offline, nothing real is created): at plan time an
+  # unset name_prefix is unknown and the assertion would error instead of failing with
+  # the task-5 message. After a mock apply every attribute is known. Only the group is
+  # targeted, so teardown never meets the ledger's prevent_destroy.
+  command = apply
+
+  plan_options {
+    target = [aws_security_group.ingress_edge]
+  }
 
   assert {
     condition     = aws_security_group.ingress_edge.name_prefix == "hx-ingress-edge-"

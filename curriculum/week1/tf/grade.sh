@@ -50,7 +50,7 @@ for d in "$dest"/*/; do
     echo "backend check: FAIL - a backend block cannot use variables or locals (Terraform: \"Variables not allowed\"). Use literals or -backend-config:"
     printf '  %s\n' "${bad//$'\n'/$'\n'  }"
   fi
-  if ! (cd "$d" && tf init -backend=false -input=false -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
+  if ! (cd "$d" && tf init -backend=false -input=false -lockfile=readonly -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
   [[ $r == FAIL ]] && fails=$((fails+1))
   note=""
   if [[ "$type" == explain ]]; then
