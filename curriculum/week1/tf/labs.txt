@@ -2,7 +2,7 @@
 # type: fix     = lab ships broken; grader FAILs as shipped, student fixes main.tf until PASS
 #       explain = lab ships correct; grader PASSes as shipped (regression check), student
 #                 writes up why the config is correct (see curriculum/README.md)
-01-lifecycle-cli-broken                  local:labs/01-lifecycle-cli-broken/starter  fix
+01-lifecycle-guardrails                  local:labs/01-lifecycle-guardrails/starter  fix
 02-dynamic-config-broken                 labs/02-dynamic-config-broken              fix
 03-state-import-moved-broken             labs/03-state-import-moved-broken          fix
 04-remote-state-backend-broken           labs/04-remote-state-backend-broken        fix

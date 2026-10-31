@@ -1,4 +1,4 @@
-# lab 01 CI gate, 2026-10-30 20:36 EDT, Terraform v1.16.0
+# lab 01 CI gate, 2026-10-30 20:36 EDT, Terraform v1.16.0 (host run before the lab moved to 01-lifecycle-guardrails; the lab now pins Terraform 1.10.5 and hashicorp/aws 6.71.0, the image hedronite/fullstack-lab-tf:1.10.5-aws)
 ================ reference (clean copy)
 ########## 01-lifecycle-cli-broken [fix]
 tests/hedronite_grader.tftest.hcl... in progress

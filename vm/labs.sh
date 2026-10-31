@@ -44,9 +44,9 @@ if "${D[@]}" run --rm "$IMG" zsh -c 'terraform version|head -1; kubectl version 
   res L0-toolchain PASS; else res L0-toolchain FAIL; fi
 
 echo "== L1 workspace tf lab (mock provider, no creds)"
-if [[ ! -d "$WS/week1/tf/01-lifecycle-cli-broken" ]]; then res L1-tf-workspace-lab SKIP; else
+if [[ ! -d "$WS/week1/tf/01-lifecycle-guardrails" ]]; then res L1-tf-workspace-lab SKIP; else
   # shellcheck disable=SC2016
-  "${D[@]}" run --rm -v "$WS:/workspace:ro" "$IMG" zsh -c 'cp -R /workspace/week1/tf/01-lifecycle-cli-broken /tmp/l1 && cd /tmp/l1 && rm -rf .terraform && terraform init -input=false -no-color >/dev/null && terraform validate -no-color && echo VALIDATE_OK && terraform test -no-color; echo TEST_RC=$?' 2>&1 | tail -15 | tee "$l1out"
+  "${D[@]}" run --rm -v "$WS:/workspace:ro" "$IMG" zsh -c 'cp -R /workspace/week1/tf/01-lifecycle-guardrails /tmp/l1 && cd /tmp/l1 && rm -rf .terraform && terraform init -input=false -no-color >/dev/null && terraform validate -no-color && echo VALIDATE_OK && terraform test -no-color; echo TEST_RC=$?' 2>&1 | tail -15 | tee "$l1out"
   if grep -q VALIDATE_OK "$l1out"; then res L1-tf-init-validate PASS; else res L1-tf-init-validate FAIL; fi
   if grep -q 'TEST_RC=0' "$l1out"; then res L1-tf-test PASS; else res L1-tf-test FAIL; fi
 fi
