@@ -1,4 +1,4 @@
-# lab 01 CI gate, 2026-10-30 20:03 EDT, Terraform v1.10.5
+# lab 01 CI gate, 2026-10-30 20:36 EDT, Terraform v1.16.0
 ================ reference (clean copy)
 ########## 01-lifecycle-cli-broken [fix]
 tests/hedronite_grader.tftest.hcl... in progress
@@ -20,7 +20,7 @@ Error: Test assertion failed
   on tests/hedronite_grader.tftest.hcl line 15, in run "bucket_name_was_actually_replaced":
   15:     condition     = aws_s3_bucket.logs.bucket != "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
     ├────────────────
-    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+
 
 The placeholder bucket name is still in main.tf. Task 2 asks you to replace
 it with a globally unique name.
