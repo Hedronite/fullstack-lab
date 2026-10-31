@@ -1,0 +1,3 @@
+[submodule "curriculum/upstream/tfpro-labs"]
+	path = curriculum/upstream/tfpro-labs
+	url = https://github.com/Hedronite/tfpro-labs.git

@@ -1,0 +1,359 @@
+# Week-1 terraform grader run, 2026-10-30 22:12 EDT (graders as committed alongside this log)
+# Terraform v1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS), host run with grade.sh.
+# grade.sh clears the environment itself (PATH, throwaway HOME, TF_CLI_CONFIG_FILE=/dev/null,
+# TF_IN_AUTOMATION, TF_PLUGIN_CACHE_DIR), runs `init -backend=false` (with -lockfile=readonly where
+# the lab ships a lock file, i.e. lab 01; a WARNING is printed for each lab without one), and
+# statically fails backend blocks that reference var./local.
+# A dummy AWS_ACCESS_KEY_ID was set in the caller to show it does not leak.
+# Only tests/hedronite_grader.tftest.hcl is run in each lab.
+# SET unfixed : labs 01-09 as staged (01 = Hedronite starter; 02-09 = submodule a96cfa3 as shipped)
+# SET mut     : 08 and 09 deliberately broken in a scratch copy outside the repo:
+#   08: trust principal ec2.amazonaws.com -> lambda.amazonaws.com; iam_instance_profile removed from aws_instance.app
+#   09: inline egress block added to aws_security_group.web; ingress rules switched from for_each-by-port to count
+# SET probe04 : 04 with only the backend key changed to a literal (backend check should no longer fire)
+================ SET unfixed
+########## 01-lifecycle-guardrails [fix]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "ledger_has_a_real_name"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 19, in run "ledger_has_a_real_name":
+  19:     condition     = aws_dynamodb_table.audit_ledger.name != "<hx: name the audit ledger>"
+    ├────────────────
+    │ aws_dynamodb_table.audit_ledger.name is "<hx: name the audit ledger>"
+
+Task 2: the ledger still has the <hx: ...> placeholder name.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 24, in run "ledger_has_a_real_name":
+  24:     condition     = can(regex("^[A-Za-z0-9_.-]{3,255}$", aws_dynamodb_table.audit_ledger.name))
+    ├────────────────
+    │ aws_dynamodb_table.audit_ledger.name is "<hx: name the audit ledger>"
+
+Task 2: a DynamoDB table name is 3-255 characters of letters, digits, '_',
+'-' and '.'. Plan does not catch this; the API rejects it at apply.
+  run "edge_group_can_be_replaced_before_destroy"... fail
+
+Warning: Resource targeting is in effect
+
+You are creating a plan with the -target option, which means that the result
+of this plan may not represent all of the changes requested by the current
+configuration.
+
+The -target option is not for routine use, and is provided only for
+exceptional situations such as recovering from errors or mistakes, or when
+Terraform specifically suggests to use it as part of an error message.
+
+Warning: Applied changes may be incomplete
+
+The plan was created with the -target option in effect, so some changes
+requested in the configuration may have been ignored and the output values
+may not be fully updated. Run the following command to verify that no other
+changes are pending:
+    terraform plan
+
+Note that the -target option is not suitable for routine use, and is provided
+only for exceptional situations such as recovering from errors or mistakes,
+or when Terraform specifically suggests to use it as part of an error
+message.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 41, in run "edge_group_can_be_replaced_before_destroy":
+  41:     condition     = aws_security_group.ingress_edge.name_prefix == "hx-ingress-edge-"
+    ├────────────────
+    │ aws_security_group.ingress_edge.name_prefix is "ex0bos65"
+
+Task 5: create_before_destroy needs the old and new group to coexist; a fixed
+`name` cannot. Use name_prefix = "hx-ingress-edge-" instead of name.
+
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 0 passed, 2 failed.
+RESULT 01-lifecycle-guardrails              fix     FAIL 
+########## 02-dynamic-config-broken [fix]
+WARNING: 02-dynamic-config-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "resources_are_no_longer_index_addressed"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 16, in run "resources_are_no_longer_index_addressed":
+  16:     condition     = !try(aws_s3_bucket.this[0].bucket != "", false)
+    ├────────────────
+    │ aws_s3_bucket.this[0].bucket is "tfpro-dynamic-logs"
+
+aws_s3_bucket.this is still index-addressed, so count is still in use.
+Removing an early list element renumbers every resource after it - that is
+the defect this lab exists to remove.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 21, in run "resources_are_no_longer_index_addressed":
+  21:     condition     = try(aws_s3_bucket.this["logs"].bucket != "", false)
+    ├────────────────
+    │ aws_s3_bucket.this is tuple with 3 elements
+
+Expected aws_s3_bucket.this to be keyed by bucket name (for_each over a map),
+so that 'logs' is a stable address independent of ordering.
+  run "input_is_map_shaped_with_stable_keys"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 30, in run "input_is_map_shaped_with_stable_keys":
+  30:     condition     = try(length(keys(var.buckets)) == 3, false)
+    ├────────────────
+    │ var.buckets is list of object with 3 elements
+
+var.buckets should be a map(object(...)) with 3 entries. keys() fails on a
+list - if this errors, the input is still list-shaped.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 35, in run "input_is_map_shaped_with_stable_keys":
+  35:     condition     = try(toset(keys(var.buckets)) == toset(["logs", "assets", "archive"]), false)
+    ├────────────────
+    │ var.buckets is list of object with 3 elements
+
+Map keys should be the bucket names logs, assets and archive - the keys are
+what make the addresses stable, so they must carry the identity.
+  run "outputs_are_map_shaped"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 44, in run "outputs_are_map_shaped":
+  44:     condition     = try(output.bucket_names["logs"] != "", false)
+    ├────────────────
+    │ output.bucket_names is tuple with 3 elements
+
+output.bucket_names should be a MAP keyed by bucket name, not a list from a
+[*] splat. A consumer indexing by name must not break when an element is
+removed.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 49, in run "outputs_are_map_shaped":
+  49:     condition     = try(toset(keys(output.bucket_names)) == toset(["logs", "assets", "archive"]), false)
+    ├────────────────
+    │ output.bucket_names is tuple with 3 elements
+
+output.bucket_names should expose exactly the three configured keys.
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 0 passed, 3 failed.
+RESULT 02-dynamic-config-broken             fix     FAIL 
+########## 03-state-import-moved-broken [fix]
+WARNING: 03-state-import-moved-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "resource_moved_out_of_the_root_module"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 14, in run "resource_moved_out_of_the_root_module":
+  14:     condition     = !try(aws_s3_bucket.logs.bucket != "", false)
+    ├────────────────
+    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-AN-EXISTING-BUCKET-NAME"
+
+aws_s3_bucket.logs still resolves at the ROOT. Task 2 asks you to refactor it
+into a child module - the resource should now live at
+module.<name>.aws_s3_bucket.logs.
+  run "consumers_did_not_break"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 1 passed, 1 failed.
+RESULT 03-state-import-moved-broken         fix     FAIL 
+########## 04-remote-state-backend-broken [fix]
+backend check: FAIL - a backend block cannot use variables or locals (Terraform: "Variables not allowed"). Use literals or -backend-config:
+  <scratch>/ws/04-remote-state-backend-broken/main.tf:18:     key    = local.network_state_key
+WARNING: 04-remote-state-backend-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "consumed_remote_values_are_surfaced"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 1 passed, 0 failed.
+RESULT 04-remote-state-backend-broken       fix     FAIL 
+########## 05-workspaces-cross-stack-broken [fix]
+WARNING: 05-workspaces-cross-stack-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "environment_tracks_the_workspace"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 10, in run "environment_tracks_the_workspace":
+  10:     condition     = try(output.selected_environment == terraform.workspace, false)
+    ├────────────────
+    │ output.selected_environment is "dev"
+    │ terraform.workspace is "default"
+
+output.selected_environment does not equal terraform.workspace. Task 1 asks
+that outputs reflect the selected workspace rather than a hardcoded
+environment name.
+  run "instance_type_is_surfaced"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 1 passed, 1 failed.
+RESULT 05-workspaces-cross-stack-broken     fix     FAIL 
+########## 06-providers-alias-auth-broken [fix]
+WARNING: 06-providers-alias-auth-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "both_regions_are_surfaced"... pass
+
+Warning: Deprecated attribute
+
+  on main.tf line 17, in output "primary_region":
+  17:   value = data.aws_region.primary.name
+
+The attribute "name" is deprecated. Refer to the provider documentation for
+details.
+
+(and 3 more similar warnings elsewhere)
+
+  run "the_two_providers_are_actually_distinct"... pass
+
+Warning: Deprecated attribute
+
+  on main.tf line 17, in output "primary_region":
+  17:   value = data.aws_region.primary.name
+
+The attribute "name" is deprecated. Refer to the provider documentation for
+details.
+
+(and 3 more similar warnings elsewhere)
+
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 2 passed, 0 failed.
+RESULT 06-providers-alias-auth-broken       fix     PASS 
+########## 07-validation-checks-tests-broken [explain]
+WARNING: 07-validation-checks-tests-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "unknown_environment_is_rejected_by_validation"... pass
+  run "too_short_name_prefix_is_rejected_by_validation"... pass
+  run "prod_on_t3_micro_is_blocked_by_precondition"... pass
+  run "prod_on_a_larger_type_goes_through"... pass
+  run "short_but_valid_prefix_only_warns"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 5 passed, 0 failed.
+RESULT 07-validation-checks-tests-broken    explain PASS (expected: ships correct; now write up why it is correct)
+########## 08-iam-ec2-broken [explain]
+WARNING: 08-iam-ec2-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "iam_chain_is_wired_to_ec2"... pass
+  run "policy_is_attached_to_the_role"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 2 passed, 0 failed.
+RESULT 08-iam-ec2-broken                    explain PASS (expected: ships correct; now write up why it is correct)
+########## 09-security-group-rules-broken [explain]
+WARNING: 09-security-group-rules-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "rules_are_separate_resources_not_inline_blocks"... pass
+  run "ingress_rules_are_keyed_by_every_allowed_port"... pass
+  run "security_group_id_is_published"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 3 passed, 0 failed.
+RESULT 09-security-group-rules-broken       explain PASS (expected: ships correct; now write up why it is correct)
+# grade.sh rc=5
+================ SET mut
+########## 08-iam-ec2-broken [explain]
+WARNING: 08-iam-ec2-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "iam_chain_is_wired_to_ec2"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 22, in run "iam_chain_is_wired_to_ec2":
+  22:     condition = anytrue([
+  23:       for s in data.aws_iam_policy_document.trust.statement :
+  24:       s.effect == "Allow" && contains(s.actions, "sts:AssumeRole") &&
+  25:       anytrue([for p in s.principals : p.type == "Service" && contains(p.identifiers, "ec2.amazonaws.com")])
+  26:     ])
+    ├────────────────
+    │ data.aws_iam_policy_document.trust.statement is list of object with 1 element
+
+Trust policy must Allow sts:AssumeRole for Service principal
+ec2.amazonaws.com.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 47, in run "iam_chain_is_wired_to_ec2":
+  47:     condition     = aws_instance.app.iam_instance_profile == aws_iam_instance_profile.app.name
+    ├────────────────
+    │ aws_iam_instance_profile.app.name is "tfpro-instance-profile"
+    │ aws_instance.app.iam_instance_profile is "a1jh28uw"
+
+aws_instance.app must use aws_iam_instance_profile.app.
+  run "policy_is_attached_to_the_role"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 1 passed, 1 failed.
+RESULT 08-iam-ec2-broken                    explain FAIL (regression: an explain lab should pass as shipped)
+########## 09-security-group-rules-broken [explain]
+WARNING: 09-security-group-rules-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "rules_are_separate_resources_not_inline_blocks"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 30, in run "rules_are_separate_resources_not_inline_blocks":
+  30:     condition     = length(aws_security_group.web.egress) == 0
+    ├────────────────
+    │ aws_security_group.web.egress is set of object with 1 element
+
+aws_security_group.web still declares INLINE egress blocks. Task 3 asks for a
+separate aws_vpc_security_group_egress_rule resource.
+  run "ingress_rules_are_keyed_by_every_allowed_port"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 49, in run "ingress_rules_are_keyed_by_every_allowed_port":
+  49:     condition     = try(alltrue([for p in var.allowed_ports : contains(keys(aws_vpc_security_group_ingress_rule.web), tostring(p))]), false)
+    ├────────────────
+    │ aws_vpc_security_group_ingress_rule.web is tuple with 3 elements
+    │ var.allowed_ports is list of number with 3 elements
+
+Every port in var.allowed_ports must appear as a for_each KEY, so each rule
+has a stable address. If ports are index-keyed, removing one renumbers the
+rest and Terraform destroys and recreates unrelated rules.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 54, in run "ingress_rules_are_keyed_by_every_allowed_port":
+  54:     condition     = try(alltrue([for r in values(aws_vpc_security_group_ingress_rule.web) : r.security_group_id == aws_security_group.web.id]), false)
+    ├────────────────
+    │ aws_security_group.web.id is "sg-0123456789abcdef0"
+    │ aws_vpc_security_group_ingress_rule.web is tuple with 3 elements
+
+Every ingress rule must reference aws_security_group.web.id.
+  run "security_group_id_is_published"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 1 passed, 2 failed.
+RESULT 09-security-group-rules-broken       explain FAIL (regression: an explain lab should pass as shipped)
+# grade.sh rc=2
+================ SET probe04
+########## 04-remote-state-backend-broken [fix]
+WARNING: 04-remote-state-backend-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
+tests/hedronite_grader.tftest.hcl... in progress
+  run "consumed_remote_values_are_surfaced"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 1 passed, 0 failed.
+RESULT 04-remote-state-backend-broken       fix     PASS 
+# grade.sh rc=0
