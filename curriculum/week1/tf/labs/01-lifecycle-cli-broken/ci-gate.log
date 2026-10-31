@@ -1,0 +1,55 @@
+# lab 01 CI gate, 2026-10-30 20:03 EDT, Terraform v1.10.5
+================ reference (clean copy)
+########## 01-lifecycle-cli-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "bucket_name_was_actually_replaced"... pass
+  run "bucket_name_is_a_legal_s3_name"... pass
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... pass
+
+Success! 2 passed, 0 failed.
+RESULT 01-lifecycle-cli-broken              fix     PASS 
+GATE reference grade.sh rc=0, expected rc=0 (PASS)
+================ starter (clean copy)
+########## 01-lifecycle-cli-broken [fix]
+tests/hedronite_grader.tftest.hcl... in progress
+  run "bucket_name_was_actually_replaced"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 15, in run "bucket_name_was_actually_replaced":
+  15:     condition     = aws_s3_bucket.logs.bucket != "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+    ├────────────────
+    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+
+The placeholder bucket name is still in main.tf. Task 2 asks you to replace
+it with a globally unique name.
+  run "bucket_name_is_a_legal_s3_name"... fail
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 24, in run "bucket_name_is_a_legal_s3_name":
+  24:     condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", aws_s3_bucket.logs.bucket))
+    ├────────────────
+    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+
+Bucket name must be 3-63 chars, lowercase alphanumeric plus dots and hyphens,
+and must start and end alphanumeric.
+
+Error: Test assertion failed
+
+  on tests/hedronite_grader.tftest.hcl line 29, in run "bucket_name_is_a_legal_s3_name":
+  29:     condition     = !can(regex("[A-Z_]", aws_s3_bucket.logs.bucket))
+    ├────────────────
+    │ aws_s3_bucket.logs.bucket is "REPLACE-ME-WITH-A-UNIQUE-BUCKET-NAME"
+
+S3 bucket names cannot contain uppercase letters or underscores. This is
+rejected by the API, not by Terraform - a plan will pass and the apply will
+fail.
+tests/hedronite_grader.tftest.hcl... tearing down
+tests/hedronite_grader.tftest.hcl... fail
+
+Failure! 0 passed, 2 failed.
+RESULT 01-lifecycle-cli-broken              fix     FAIL 
+GATE starter grade.sh rc=1, expected rc!=0 (FAIL)
+GATE OK: reference PASS, starter FAIL
