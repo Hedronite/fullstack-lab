@@ -1,4 +1,4 @@
-# Week-1 terraform grader run, 2026-10-30 22:07 EDT (graders as committed alongside this log)
+# Week-1 terraform grader run, 2026-10-30 22:12 EDT (graders as committed alongside this log)
 # Terraform v1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS), host run with grade.sh.
 # grade.sh clears the environment itself (PATH, throwaway HOME, TF_CLI_CONFIG_FILE=/dev/null,
 # TF_IN_AUTOMATION, TF_PLUGIN_CACHE_DIR), runs `init -backend=false` (with -lockfile=readonly where
@@ -64,7 +64,7 @@ Error: Test assertion failed
   on tests/hedronite_grader.tftest.hcl line 41, in run "edge_group_can_be_replaced_before_destroy":
   41:     condition     = aws_security_group.ingress_edge.name_prefix == "hx-ingress-edge-"
     ├────────────────
-    │ aws_security_group.ingress_edge.name_prefix is "ia1wo8l6"
+    │ aws_security_group.ingress_edge.name_prefix is "ex0bos65"
 
 Task 5: create_before_destroy needs the old and new group to coexist; a fixed
 `name` cannot. Use name_prefix = "hx-ingress-edge-" instead of name.
@@ -268,22 +268,6 @@ Success! 3 passed, 0 failed.
 RESULT 09-security-group-rules-broken       explain PASS (expected: ships correct; now write up why it is correct)
 # grade.sh rc=5
 ================ SET mut
-Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='rb' closefd=True>:
-Traceback (most recent call last):
-  File "<stdin>", line 3, in <module>
-ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='r' encoding='UTF-8'>
-Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='wb' closefd=True>:
-Traceback (most recent call last):
-  File "<stdin>", line 5, in <module>
-ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='w' encoding='UTF-8'>
-Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='rb' closefd=True>:
-Traceback (most recent call last):
-  File "<stdin>", line 6, in <module>
-ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='r' encoding='UTF-8'>
-Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='wb' closefd=True>:
-Traceback (most recent call last):
-  File "<stdin>", line 10, in <module>
-ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='w' encoding='UTF-8'>
 ########## 08-iam-ec2-broken [explain]
 WARNING: 08-iam-ec2-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
@@ -309,7 +293,7 @@ Error: Test assertion failed
   47:     condition     = aws_instance.app.iam_instance_profile == aws_iam_instance_profile.app.name
     ├────────────────
     │ aws_iam_instance_profile.app.name is "tfpro-instance-profile"
-    │ aws_instance.app.iam_instance_profile is "iy5iooen"
+    │ aws_instance.app.iam_instance_profile is "a1jh28uw"
 
 aws_instance.app must use aws_iam_instance_profile.app.
   run "policy_is_attached_to_the_role"... pass
