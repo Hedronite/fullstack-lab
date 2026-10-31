@@ -53,6 +53,19 @@ sandbox account, or review the block by eye.
 
 ## CI gate
 
-`./ci-gate.sh` copies `reference/` and `starter/` into clean temp dirs, adds the
-grader, and runs `grade.sh` on each: reference must PASS, starter must FAIL.
-Output goes to `ci-gate.log`.
+`check.sh` (POSIX sh, at the lab root) is the checker: run inside a copy of
+`starter/` or `reference/`, it stages the grader into `tests/`, runs
+`terraform init` + `terraform test`, and prints
+`RESULT 01-lifecycle-cli-broken fix PASS|FAIL`. Its embedded grader is a byte copy
+of `graders/01-lifecycle-cli-broken/hedronite_grader.tftest.hcl`.
+
+The containerised gate is the curriculum `ci_gate.py`, pointed straight at this dir:
+
+    ci_gate.py --runner docker --image hedronite/fullstack-lab-tf:1.10.5-aws curriculum/week1/tf/labs/01-lifecycle-cli-broken
+
+`sh ./ci-gate.sh [log-file]` is the host/in-image equivalent (no bash needed): it
+copies `reference/` and `starter/` into clean temp dirs with `check.sh` and checks
+reference PASS, starter FAIL on a grader assertion, and no drift between the two
+grader copies. In the lab image, set `CI_GATE_TF_CLI_CONFIG=/root/.terraformrc`
+so terraform finds the offline provider mirror. Output goes to `ci-gate.log`
+(or the given file); the committed log is from an earlier run.
