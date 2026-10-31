@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Stage week-1 terraform labs into a writable workspace: copy each upstream lab
-# from the submodule and add our grader as tests/hedronite_grader.tftest.hcl.
+# Stage week-1 terraform labs into a writable workspace: copy each lab (from the
+# submodule, or a Hedronite-authored one under labs/ when labs.txt says local:<dir>)
+# and add our grader as tests/hedronite_grader.tftest.hcl.
 #   curriculum/week1/tf/stage.sh <dest> [lab-prefix ...]     e.g. stage.sh ~/lab-workspaces/default/week1/tf 07 09
 # Existing lab dirs in <dest> are left alone (your work is never overwritten)
 # unless STAGE_FORCE=1. Lab types (fix / explain) come from labs.txt.
@@ -17,8 +18,9 @@ while read -r grader lab type _; do
   [[ -z "$grader" || "$grader" == \#* ]] && continue
   want "$grader" "$@" || continue
   [[ "$type" == fix || "$type" == explain ]] || { echo "labs.txt: bad type for $grader: ${type:-<none>}" >&2; exit 1; }
-  src="$up/$lab"; out="$dest/$grader"
-  [[ -d "$src" ]] || { echo "missing upstream lab: $lab" >&2; exit 1; }
+  if [[ "$lab" == local:* ]]; then src="$here/${lab#local:}"; else src="$up/$lab"; fi
+  out="$dest/$grader"
+  [[ -d "$src" ]] || { echo "missing lab source: $lab" >&2; exit 1; }
   if [[ -e "$out" && "${STAGE_FORCE:-0}" != 1 ]]; then echo "keep   $out  [$type]"; else
     rm -rf "$out"; mkdir -p "$out"; cp -R "$src/." "$out/"; echo "staged $out  [$type]"
   fi
