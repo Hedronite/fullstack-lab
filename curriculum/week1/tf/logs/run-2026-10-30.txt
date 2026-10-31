@@ -1,8 +1,9 @@
-# Week-1 terraform grader run, 2026-10-30 21:20 EDT (graders as committed alongside this log)
+# Week-1 terraform grader run, 2026-10-30 22:07 EDT (graders as committed alongside this log)
 # Terraform v1.10.5 darwin_arm64 (zip sha256 checked against HashiCorp SHA256SUMS), host run with grade.sh.
 # grade.sh clears the environment itself (PATH, throwaway HOME, TF_CLI_CONFIG_FILE=/dev/null,
 # TF_IN_AUTOMATION, TF_PLUGIN_CACHE_DIR), runs `init -backend=false` (with -lockfile=readonly where
-# the lab ships a lock file, i.e. lab 01), and statically fails backend blocks that reference var./local.
+# the lab ships a lock file, i.e. lab 01; a WARNING is printed for each lab without one), and
+# statically fails backend blocks that reference var./local.
 # A dummy AWS_ACCESS_KEY_ID was set in the caller to show it does not leak.
 # Only tests/hedronite_grader.tftest.hcl is run in each lab.
 # SET unfixed : labs 01-09 as staged (01 = Hedronite starter; 02-09 = submodule a96cfa3 as shipped)
@@ -63,7 +64,7 @@ Error: Test assertion failed
   on tests/hedronite_grader.tftest.hcl line 41, in run "edge_group_can_be_replaced_before_destroy":
   41:     condition     = aws_security_group.ingress_edge.name_prefix == "hx-ingress-edge-"
     ├────────────────
-    │ aws_security_group.ingress_edge.name_prefix is "vk6kl3l6"
+    │ aws_security_group.ingress_edge.name_prefix is "ia1wo8l6"
 
 Task 5: create_before_destroy needs the old and new group to coexist; a fixed
 `name` cannot. Use name_prefix = "hx-ingress-edge-" instead of name.
@@ -74,6 +75,7 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 0 passed, 2 failed.
 RESULT 01-lifecycle-guardrails              fix     FAIL 
 ########## 02-dynamic-config-broken [fix]
+WARNING: 02-dynamic-config-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "resources_are_no_longer_index_addressed"... fail
 
@@ -145,6 +147,7 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 0 passed, 3 failed.
 RESULT 02-dynamic-config-broken             fix     FAIL 
 ########## 03-state-import-moved-broken [fix]
+WARNING: 03-state-import-moved-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "resource_moved_out_of_the_root_module"... fail
 
@@ -167,6 +170,7 @@ RESULT 03-state-import-moved-broken         fix     FAIL
 ########## 04-remote-state-backend-broken [fix]
 backend check: FAIL - a backend block cannot use variables or locals (Terraform: "Variables not allowed"). Use literals or -backend-config:
   <scratch>/ws/04-remote-state-backend-broken/main.tf:18:     key    = local.network_state_key
+WARNING: 04-remote-state-backend-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "consumed_remote_values_are_surfaced"... pass
 tests/hedronite_grader.tftest.hcl... tearing down
@@ -175,6 +179,7 @@ tests/hedronite_grader.tftest.hcl... pass
 Success! 1 passed, 0 failed.
 RESULT 04-remote-state-backend-broken       fix     FAIL 
 ########## 05-workspaces-cross-stack-broken [fix]
+WARNING: 05-workspaces-cross-stack-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "environment_tracks_the_workspace"... fail
 
@@ -196,6 +201,7 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 1 passed, 1 failed.
 RESULT 05-workspaces-cross-stack-broken     fix     FAIL 
 ########## 06-providers-alias-auth-broken [fix]
+WARNING: 06-providers-alias-auth-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "both_regions_are_surfaced"... pass
 
@@ -227,6 +233,7 @@ tests/hedronite_grader.tftest.hcl... pass
 Success! 2 passed, 0 failed.
 RESULT 06-providers-alias-auth-broken       fix     PASS 
 ########## 07-validation-checks-tests-broken [explain]
+WARNING: 07-validation-checks-tests-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "unknown_environment_is_rejected_by_validation"... pass
   run "too_short_name_prefix_is_rejected_by_validation"... pass
@@ -239,6 +246,7 @@ tests/hedronite_grader.tftest.hcl... pass
 Success! 5 passed, 0 failed.
 RESULT 07-validation-checks-tests-broken    explain PASS (expected: ships correct; now write up why it is correct)
 ########## 08-iam-ec2-broken [explain]
+WARNING: 08-iam-ec2-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "iam_chain_is_wired_to_ec2"... pass
   run "policy_is_attached_to_the_role"... pass
@@ -248,6 +256,7 @@ tests/hedronite_grader.tftest.hcl... pass
 Success! 2 passed, 0 failed.
 RESULT 08-iam-ec2-broken                    explain PASS (expected: ships correct; now write up why it is correct)
 ########## 09-security-group-rules-broken [explain]
+WARNING: 09-security-group-rules-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "rules_are_separate_resources_not_inline_blocks"... pass
   run "ingress_rules_are_keyed_by_every_allowed_port"... pass
@@ -259,8 +268,24 @@ Success! 3 passed, 0 failed.
 RESULT 09-security-group-rules-broken       explain PASS (expected: ships correct; now write up why it is correct)
 # grade.sh rc=5
 ================ SET mut
-<stdin>:5: DeprecationWarning: 'count' is passed as positional argument
+Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='rb' closefd=True>:
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='r' encoding='UTF-8'>
+Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='wb' closefd=True>:
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/08-iam-ec2-broken/main.tf' mode='w' encoding='UTF-8'>
+Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='rb' closefd=True>:
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='r' encoding='UTF-8'>
+Exception ignored while finalizing file <_io.FileIO name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='wb' closefd=True>:
+Traceback (most recent call last):
+  File "<stdin>", line 10, in <module>
+ResourceWarning: unclosed file <_io.TextIOWrapper name='<scratch>/mut/09-security-group-rules-broken/main.tf' mode='w' encoding='UTF-8'>
 ########## 08-iam-ec2-broken [explain]
+WARNING: 08-iam-ec2-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "iam_chain_is_wired_to_ec2"... fail
 
@@ -284,7 +309,7 @@ Error: Test assertion failed
   47:     condition     = aws_instance.app.iam_instance_profile == aws_iam_instance_profile.app.name
     ├────────────────
     │ aws_iam_instance_profile.app.name is "tfpro-instance-profile"
-    │ aws_instance.app.iam_instance_profile is "rh54vgf7"
+    │ aws_instance.app.iam_instance_profile is "iy5iooen"
 
 aws_instance.app must use aws_iam_instance_profile.app.
   run "policy_is_attached_to_the_role"... pass
@@ -294,6 +319,7 @@ tests/hedronite_grader.tftest.hcl... fail
 Failure! 1 passed, 1 failed.
 RESULT 08-iam-ec2-broken                    explain FAIL (regression: an explain lab should pass as shipped)
 ########## 09-security-group-rules-broken [explain]
+WARNING: 09-security-group-rules-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "rules_are_separate_resources_not_inline_blocks"... fail
 
@@ -338,6 +364,7 @@ RESULT 09-security-group-rules-broken       explain FAIL (regression: an explain
 # grade.sh rc=2
 ================ SET probe04
 ########## 04-remote-state-backend-broken [fix]
+WARNING: 04-remote-state-backend-broken has no .terraform.lock.hcl; providers resolve from its version constraints at init
 tests/hedronite_grader.tftest.hcl... in progress
   run "consumed_remote_values_are_surfaced"... pass
 tests/hedronite_grader.tftest.hcl... tearing down

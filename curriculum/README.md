@@ -68,6 +68,19 @@ security-group lab; use its Tasks and Success criteria instead.
 
 ## Grader status against the labs as shipped (`a96cfa3`)
 
+Provider pins and lock files: lab 01 pins Terraform `= 1.10.5` and `hashicorp/aws` `= 6.71.0`
+and ships a `.terraform.lock.hcl`; `grade.sh` inits it with `-lockfile=readonly` and refuses to
+grade it if the lock is missing. Labs 02-09 come from the submodule unchanged, with loose
+upstream pins (`required_version = ">= 1.6, < 2.0"`, `hashicorp/aws` `"~> 6.0"`) and no lock
+file; `grade.sh` prints a WARNING for each and lets init resolve the provider. In-image runs
+(`hedronite/fullstack-lab-tf:1.10.5-aws`, offline) resolve `aws` to 6.71.0 from the image's
+provider mirror; a host run resolves whatever 6.x the registry offers that day. Upstream files
+are not overlaid or patched.
+
+The run logs in `week1/tf/logs/` show the output of running the upstream labs (via the
+`upstream/tfpro-labs` submodule) through our graders, including Terraform's own warnings for
+those configs; nothing in them is redacted.
+
 | lab | type | as shipped | note |
 |---|---|---|---|
 | 01–03, 05 | fix | FAIL | intended |

@@ -37,6 +37,9 @@ backend_vars() {
       if (depth <= 0) inb = 0
     }' "$1"/*.tf
 }
+# Labs that ship a .terraform.lock.hcl and must be graded against it (init -lockfile=readonly).
+# A listed lab with no lock file is refused (FAIL), never graded against fresh provider picks.
+must_have_lock=" 01-lifecycle-guardrails "
 fails=0
 for d in "$dest"/*/; do
   name=$(basename "$d"); [[ -f "$d/$grader" ]] || continue
@@ -52,7 +55,14 @@ for d in "$dest"/*/; do
   fi
   # Enforce the lock read-only only where the lab ships one (Hedronite lab 01); the
   # submodule labs (02-09) have none, and readonly init would fail them all.
-  lockflag=""; [[ -f "$d/.terraform.lock.hcl" ]] && lockflag="-lockfile=readonly"
+  lockflag=""
+  if [[ -f "$d/.terraform.lock.hcl" ]]; then lockflag="-lockfile=readonly"
+  elif [[ "$must_have_lock" == *" $name "* ]]; then
+    echo "lock check: FAIL - $name must ship .terraform.lock.hcl (graded with -lockfile=readonly); it is missing, refusing to grade"
+    fails=$((fails+1)); printf 'RESULT %-36s %-7s %-4s %s\n' "$name" "$type" FAIL "(refused: lock file missing)"; continue
+  else
+    echo "WARNING: $name has no .terraform.lock.hcl; providers resolve from its version constraints at init"
+  fi
   if ! (cd "$d" && tf init -backend=false -input=false ${lockflag:+"$lockflag"} -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
   [[ $r == FAIL ]] && fails=$((fails+1))
   note=""
