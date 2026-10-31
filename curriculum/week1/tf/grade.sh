@@ -50,7 +50,10 @@ for d in "$dest"/*/; do
     echo "backend check: FAIL - a backend block cannot use variables or locals (Terraform: \"Variables not allowed\"). Use literals or -backend-config:"
     printf '  %s\n' "${bad//$'\n'/$'\n'  }"
   fi
-  if ! (cd "$d" && tf init -backend=false -input=false -lockfile=readonly -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
+  # Enforce the lock read-only only where the lab ships one (Hedronite lab 01); the
+  # submodule labs (02-09) have none, and readonly init would fail them all.
+  lockflag=""; [[ -f "$d/.terraform.lock.hcl" ]] && lockflag="-lockfile=readonly"
+  if ! (cd "$d" && tf init -backend=false -input=false ${lockflag:+"$lockflag"} -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
   [[ $r == FAIL ]] && fails=$((fails+1))
   note=""
   if [[ "$type" == explain ]]; then

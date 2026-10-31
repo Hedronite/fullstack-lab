@@ -11,6 +11,7 @@ into this repo; they are referenced through a git submodule.
 | `week1/tf/labs.txt` | grader → lab source map (submodule dir, or `local:<dir>` for Hedronite-authored labs), plus lab type (`fix` / `explain`) |
 | `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
 | `week1/tf/grade.sh` | `terraform init -backend=false` + `terraform test` of our grader only, in each staged lab, one `RESULT` line each |
+| `week1/tf/logs/run-2026-10-30.txt` | grader run log (Terraform 1.10.5, host run of grade.sh on all 9 labs, plus broken 08/09 copies and a 04 probe) |
 
 ## License note
 
@@ -59,8 +60,7 @@ Labs 07, 08 and 09 are `explain` labs: their upstream configs already ship in th
 correct end state, so a grader cannot turn them red. Their graders stay as
 regression checks: a FAIL on 07–09 means the staged config drifted, not that
 the student has work left. The graders were also checked against deliberately
-broken scratch copies of 08 and 09 and fail them (the 2026-10-30 run log was
-host-run on the old lab 01 and has been withdrawn; it will be regenerated in-image).
+broken scratch copies of 08 and 09 and fail them (see `week1/tf/logs/run-2026-10-30.txt`).
 
 Lab 09's upstream README has a "Starting assumptions" section copied from an S3
 lab (bucket versioning, lifecycle, tags). It does not describe the
