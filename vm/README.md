@@ -62,3 +62,11 @@ Remove it with `colima delete -p builder2 --data -f` (without `--data` the 40 Gi
 Images built only inside an old VM, docker volumes, k3s Secrets/ConfigMaps/PVCs,
 anything applied by hand, registry logins, and kubeconfig client certs (they are
 regenerated). Keep those in git or a secret store, not in the VM.
+
+## Curriculum labs
+
+Terraform lab graders live in `curriculum/`; the upstream labs come in as a
+submodule. After cloning run `git submodule update --init`, then stage and grade
+with `curriculum/week1/tf/stage.sh <dest>` and `curriculum/week1/tf/grade.sh <dest>`
+(see `curriculum/README.md`). `<dest>` is usually `$LAB_WORKSPACE/week1/tf`, which
+the VM and the lab container both see.

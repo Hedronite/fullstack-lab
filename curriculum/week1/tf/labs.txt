@@ -1,0 +1,13 @@
+# grader dir (graders/<name>)            lab dir in the submodule, or local:<dir> under week1/tf/ (Hedronite-authored)   type
+# type: fix     = lab ships broken; grader FAILs as shipped, student fixes main.tf until PASS
+#       explain = lab ships correct; grader PASSes as shipped (regression check), student
+#                 writes up why the config is correct (see curriculum/README.md)
+01-lifecycle-guardrails                  local:labs/01-lifecycle-guardrails/starter  fix
+02-dynamic-config-broken                 labs/02-dynamic-config-broken              fix
+03-state-import-moved-broken             labs/03-state-import-moved-broken          fix
+04-remote-state-backend-broken           labs/04-remote-state-backend-broken        fix
+05-workspaces-cross-stack-broken         labs/05-workspaces-cross-stack-broken      fix
+06-providers-alias-auth-broken           labs/06-providers-alias-auth-broken        fix
+07-validation-checks-tests-broken        labs/07-validation-checks-tests-broken     explain
+08-iam-ec2-broken                        labs/08-iam-ec2-broken                     explain
+09-security-group-rules-broken           labs/09-security-group-rules-broken        explain
