@@ -13,3 +13,4 @@
 09-security-group-rules-broken           labs/09-security-group-rules-broken        explain
 10-edge-provider-aliases                local:labs/10-edge-provider-aliases/starter  fix
 11-import-and-remote-state                local:labs/11-import-and-remote-state/starter  fix
+12-sensitive-values-and-credentials  local:labs/12-sensitive-values-and-credentials/starter  fix
