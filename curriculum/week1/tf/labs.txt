@@ -14,3 +14,4 @@
 10-edge-provider-aliases                local:labs/10-edge-provider-aliases/starter  fix
 11-import-and-remote-state                local:labs/11-import-and-remote-state/starter  fix
 12-sensitive-values-and-credentials  local:labs/12-sensitive-values-and-credentials/starter  fix
+13-release-ledger-guardrails  local:labs/13-release-ledger-guardrails/starter  fix
