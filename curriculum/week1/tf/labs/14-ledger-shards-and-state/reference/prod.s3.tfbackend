@@ -1,0 +1,2 @@
+bucket = "hx-lab14-state-prod"
+key    = "ledger/terraform.tfstate"
