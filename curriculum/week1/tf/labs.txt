@@ -16,3 +16,4 @@
 12-sensitive-values-and-credentials  local:labs/12-sensitive-values-and-credentials/starter  fix
 13-release-ledger-guardrails  local:labs/13-release-ledger-guardrails/starter  fix
 14-ledger-shards-and-state  local:labs/14-ledger-shards-and-state/starter  fix
+15-audit-account-assumed-role  local:labs/15-audit-account-assumed-role/starter  fix

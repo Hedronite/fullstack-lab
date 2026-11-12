@@ -13,6 +13,7 @@ into this repo; they are referenced through a git submodule.
 | `week1/tf/labs/12-sensitive-values-and-credentials/` | lab 12 written by Hedronite (MIT): sensitive variable and output, no secret in a tag or a default, no provider keys in configuration; `starter/`, `reference/`, `README.md`, `check.sh`, `ci-gate.sh` |
 | `week1/tf/labs/13-release-ledger-guardrails/` | lab 13 written by Hedronite (MIT): versioning, `ignore_changes`, `moved` block, `required_version` bound; `starter/`, `reference/`, `README.md`, `check.sh`, `ci-gate.sh` |
 | `week1/tf/labs/14-ledger-shards-and-state/` | lab 14 written by Hedronite (MIT): `import` with `for_each`, `removed` block, partial backend configuration with native locking; `starter/`, `reference/`, `README.md`, `check.sh`, `ci-gate.sh` |
+| `week1/tf/labs/15-audit-account-assumed-role/` | lab 15 written by Hedronite (MIT): a resource sent to an aliased provider, `assume_role` instead of static keys, sensitive variable and output; `starter/`, `reference/`, `README.md`, `check.sh`, `ci-gate.sh` |
 | `week1/tf/labs.txt` | grader → lab source map (submodule dir, or `local:<dir>` for Hedronite-authored labs), plus lab type (`fix` / `explain`) |
 | `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
 | `week1/tf/grade.sh` | `terraform init -backend=false` + `terraform test` of our grader only, in each staged lab, one `RESULT` line each |
