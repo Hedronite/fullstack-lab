@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-api
+  labels:
+    app: edge-api
+spec:
+  replicas: 3
+  revisionHistoryLimit: 0
+  progressDeadlineSeconds: 3600
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: edge-api
+  template:
+    metadata:
+      labels:
+        app: edge-api
+    spec:
+      containers:
+        - name: api
+          image: registry.example.com/edge/api:latest
+          ports:
+            - name: http
+              containerPort: 8080
