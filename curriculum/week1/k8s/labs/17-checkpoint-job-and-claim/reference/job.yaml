@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trainjob
+spec:
+  backoffLimit: 4
+  activeDeadlineSeconds: 3600
+  podFailurePolicy:
+    rules:
+      - action: FailJob
+        onExitCodes:
+          containerName: trainer
+          operator: In
+          values: [78]
+      - action: Ignore
+        onPodConditions:
+          - type: DisruptionTarget
+  template:
+    metadata:
+      labels:
+        app: trainjob
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: trainer
+          image: registry.example.com/ml/trainjob:1.2.0
+          args: ["run", "--dir", "/data", "--pvc", "/ckpt", "--steps", "10"]
+          volumeMounts:
+            - name: ckpt
+              mountPath: /ckpt
+      volumes:
+        - name: ckpt
+          persistentVolumeClaim:
+            claimName: trainjob-ckpt

@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: trainjob
+spec:
+  backoffLimit: 50
+  template:
+    metadata:
+      labels:
+        app: trainjob
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: trainer
+          image: registry.example.com/ml/trainjob:latest
+          args: ["run", "--dir", "/data", "--pvc", "/ckpt", "--steps", "10"]
+          volumeMounts:
+            - name: ckpt
+              mountPath: /ckpt
+      volumes:
+        - name: ckpt
+          emptyDir: {}
