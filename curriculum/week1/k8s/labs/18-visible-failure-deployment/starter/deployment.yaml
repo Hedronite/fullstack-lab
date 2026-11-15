@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: status-api
+spec:
+  replicas: 2
+  revisionHistoryLimit: 0
+  progressDeadlineSeconds: 3600
+  selector:
+    matchLabels:
+      app: status-api
+  template:
+    metadata:
+      labels:
+        app: status-api
+    spec:
+      containers:
+        - name: api
+          image: registry.example.com/edge/status-api:latest
+          args: ["serve", "--port", "8080", "--log-file", "/var/log/app/out.log"]
+          ports:
+            - containerPort: 8080
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: applog
+              mountPath: /var/log/app
+      volumes:
+        - name: applog
+          emptyDir: {}
