@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
-# Run our graders against staged labs: init + test in each, one RESULT line per lab.
-#   curriculum/week1/tf/grade.sh <dest> [lab-prefix ...]
+# Run our graders against staged labs: one command grades every task of a lab, one
+# RESULT line per lab.
+#   curriculum/week1/tf/grade.sh <dest> [lab-prefix ...]   every staged lab under <dest>
+#   curriculum/week1/tf/grade.sh <staged-lab-dir>           just that lab (e.g. `grade.sh .`)
+# Per lab: backend static check, lock check, the terraform test grader, and, when
+# graders/<lab>/static.sh exists, that lab's static task checks (tasks a mock plan or
+# apply cannot see, such as import blocks or version bounds). Every part always runs;
+# the lab PASSes only if all of them pass.
 # Uses `terraform` from PATH (>= 1.7). Graders use mock providers. Terraform runs
-# with a cleared environment; only these pass through: PATH, a throwaway HOME
-# (mktemp, removed on exit), TF_CLI_CONFIG_FILE=/dev/null, TF_IN_AUTOMATION=1 and,
-# if set, TF_PLUGIN_CACHE_DIR. No cloud credentials or CLI config reach it.
+# with a cleared environment; only these pass through: PATH, LANG, a throwaway HOME
+# (mktemp, removed on exit), TF_IN_AUTOMATION=1, TF_CLI_CONFIG_FILE and, if set,
+# TF_PLUGIN_CACHE_DIR. No cloud credentials reach it.
+# TF_CLI_CONFIG_FILE is $GRADE_TF_CLI_CONFIG if set (point it ONLY at a provider-mirror
+# config; a CLI config can carry registry credentials), else a generated mirror-only
+# config when /opt/tf-mirror exists (the lab image: grading works with no network),
+# else /dev/null (providers download from the registry).
 # `init -backend=false` means a lab's backend block is never configured; `init`
 # still downloads providers.
 # Before init, a static check fails any lab whose `backend "<type>" {}` block
@@ -24,7 +34,26 @@ trap 'rm -rf "$tfhome"' EXIT
 trap 'rm -rf "$tfhome"; exit 130' INT
 trap 'rm -rf "$tfhome"; exit 143' TERM
 labtype() { awk -v g="$1" '$1 == g { print $3; exit }' "$here/labs.txt"; }
-tf() { env -i HOME="$tfhome" PATH="$PATH" TF_CLI_CONFIG_FILE=/dev/null TF_IN_AUTOMATION=1 ${TF_PLUGIN_CACHE_DIR:+TF_PLUGIN_CACHE_DIR="$TF_PLUGIN_CACHE_DIR"} terraform "$@"; }
+if [[ -n "${GRADE_TF_CLI_CONFIG:-}" ]]; then cfg=$GRADE_TF_CLI_CONFIG
+elif [[ -d /opt/tf-mirror ]]; then
+  cfg=$tfhome/mirror.tfrc
+  printf 'provider_installation {\n  filesystem_mirror {\n    path = "/opt/tf-mirror"\n  }\n}\n' > "$cfg"
+else cfg=/dev/null; fi
+tf() { env -i HOME="$tfhome" PATH="$PATH" LANG="${LANG:-C.UTF-8}" TF_CLI_CONFIG_FILE="$cfg" TF_IN_AUTOMATION=1 ${TF_PLUGIN_CACHE_DIR:+TF_PLUGIN_CACHE_DIR="$TF_PLUGIN_CACHE_DIR"} terraform "$@"; }
+# Run graders/<lab>/static.sh (POSIX sh) in the staged lab, read-only by contract. It
+# prints one "Task N: ..." line per unmet task and exits 0 (all met) or 1 (some unmet);
+# any other exit is a broken check and fails the lab. It is read from this repo, never
+# from the staged tree, so a student cannot edit it.
+static_check() {
+  local s=$here/graders/$1/static.sh rc
+  [[ -f "$s" ]] || return 0
+  (cd "$2" && env -i PATH="$PATH" LANG="${LANG:-C.UTF-8}" sh "$s"); rc=$?
+  case $rc in
+    0) return 0 ;;
+    1) echo "static check: FAIL - unmet tasks above"; return 1 ;;
+    *) echo "static check: ERROR - graders/$1/static.sh exited $rc"; return 1 ;;
+  esac
+}
 # Print file:line for every var./local. reference inside a backend "<type>" { } block.
 backend_vars() {
   awk '
@@ -41,7 +70,14 @@ backend_vars() {
 # A listed lab with no lock file is refused (FAIL), never graded against fresh provider picks.
 must_have_lock=" 01-lifecycle-guardrails "
 fails=0
-for d in "$dest"/*/; do
+if [[ -f "$dest/$grader" ]]; then
+  # A single staged lab: grade just it, whatever the prefixes say.
+  dirs=("${dest%/}/"); set --
+else
+  dirs=("$dest"/*/)
+fi
+for d in "${dirs[@]}"; do
+  d=$(cd "$d" && pwd)/
   name=$(basename "$d"); [[ -f "$d/$grader" ]] || continue
   if [[ $# -gt 0 ]]; then m=0; for p in "$@"; do [[ "$name" == "$p"* ]] && m=1; done; [[ $m == 1 ]] || continue; fi
   type=$(labtype "$name"); type=${type:-fix}
@@ -64,6 +100,7 @@ for d in "$dest"/*/; do
     echo "WARNING: $name has no .terraform.lock.hcl; providers resolve from its version constraints at init"
   fi
   if ! (cd "$d" && tf init -backend=false -input=false ${lockflag:+"$lockflag"} -no-color >/dev/null && tf test -no-color -filter="$grader"); then r=FAIL; fi
+  static_check "$name" "$d" || r=FAIL
   [[ $r == FAIL ]] && fails=$((fails+1))
   note=""
   if [[ "$type" == explain ]]; then

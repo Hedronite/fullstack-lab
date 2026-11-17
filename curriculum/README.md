@@ -10,7 +10,8 @@ into this repo; they are referenced through a git submodule.
 | `week1/tf/labs/01-lifecycle-guardrails/` | lab 01 written by Hedronite (MIT): `starter/` (broken, staged), `reference/` (answer), `README.md`, `ci-gate.sh` + `ci-gate.log` (reference must PASS, starter must FAIL) |
 | `week1/tf/labs.txt` | grader → lab source map (submodule dir, or `local:<dir>` for Hedronite-authored labs), plus lab type (`fix` / `explain`) |
 | `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
-| `week1/tf/grade.sh` | `terraform init -backend=false` + `terraform test` of our grader only, in each staged lab, one `RESULT` line each |
+| `week1/tf/grade.sh` | the one grading command: backend and lock checks, `terraform init -backend=false` + `terraform test` of our grader only, and the lab's `graders/<lab>/static.sh` task checks if it has one; one `RESULT` line per lab. `grade.sh <dest>` grades every staged lab, `grade.sh <staged-lab-dir>` grades one |
+| `week1/tf/graders/<lab>/static.sh` | optional: checks for tasks a mock plan or apply cannot see (import blocks, version bounds), run by `grade.sh` after the grader |
 | `week1/tf/logs/run-2026-10-30.txt` | grader run log (Terraform 1.10.5, host run of grade.sh on all 9 labs, plus broken 08/09 copies and a 04 probe) |
 
 ## License note
@@ -46,6 +47,31 @@ backend init (`init -backend=false`), and a static pre-check fails any lab whose
 `backend "<type>" {}` block references `var.*` or `local.*` (Terraform's
 "Variables not allowed"), without ever configuring a backend. `init` still
 downloads providers from the Terraform registry. Terraform >= 1.7.
+
+## One grading command
+
+`grade.sh` grades every task of a lab in one run. Hedronite-authored labs also
+ship a `check.sh` (and `ci-gate.sh`) so CI can gate a lab from a single
+self-contained file; `check.sh` keeps working unchanged. For learners,
+`grade.sh` is the entry point, and it covers everything `check.sh` covers:
+
+| | `grade.sh` | `check.sh` |
+|---|---|---|
+| terraform test grader | yes (`graders/<lab>/`) | yes (embedded copy, drift-checked by `ci-gate.sh`) |
+| offline provider mirror | yes: `GRADE_TF_CLI_CONFIG`, else `/opt/tf-mirror`, else registry | yes: `CI_GATE_TF_CLI_CONFIG`, else `/opt/tf-mirror`, else none |
+| lock file read-only | yes, where the lab ships one | yes |
+| backend variable check | yes | no |
+| static task checks | yes, `graders/<lab>/static.sh` | only if written into that `check.sh` |
+
+When a lab's `check.sh` checks a task statically (for example with `grep` on the
+`.tf` text), the same checks go in `graders/<lab>/static.sh`, so `grade.sh`
+fails the lab on them too. A `static.sh` prints one `Task N: ...` line per unmet
+task and exits 1 if any are unmet, 0 otherwise.
+
+```bash
+curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf          # every staged lab
+cd ~/lab-workspaces/default/week1/tf/01-lifecycle-guardrails && /path/to/curriculum/week1/tf/grade.sh .
+```
 
 ## Lab types
 
