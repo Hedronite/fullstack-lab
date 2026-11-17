@@ -1,0 +1,24 @@
+# Week 1 Terraform lab 01, Hedronite-authored. Format: docs/lab-toml.md
+schema = "hedronite.lab/v1"
+
+[lab]
+id = "tf-01"
+aliases = ["01-lifecycle-guardrails"]
+title = "Lifecycle guardrails"
+kind = "fix"
+family = "terraform"
+source = "curriculum/week1/tf/labs/01-lifecycle-guardrails"
+
+[grade]
+# check.sh embeds the terraform test grader and runs it against a mirror-only CLI config.
+backend = "check-sh"
+entry = "curriculum/week1/tf/labs/01-lifecycle-guardrails/check.sh"
+network = "none"
+
+[tools]
+# starter/versions.tf pins required_version = "= 1.10.5"
+terraform = "= 1.10.5"
+
+[[tf_providers]]
+source = "hashicorp/aws"
+version = "= 6.71.0"

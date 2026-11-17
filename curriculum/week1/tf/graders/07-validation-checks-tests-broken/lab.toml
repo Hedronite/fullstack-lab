@@ -1,0 +1,27 @@
+# Week 1 Terraform lab 07. The lab files come from the tfpro-labs submodule and
+# are not copied here, so this manifest sits beside the Hedronite grader.
+# Format: docs/lab-toml.md
+schema = "hedronite.lab/v1"
+
+[lab]
+id = "tf-07"
+aliases = ["07-validation-checks-tests-broken"]
+title = "Validation, checks, and tests"
+kind = "explain"
+family = "terraform"
+source = "curriculum/upstream/tfpro-labs/labs/07-validation-checks-tests-broken"
+
+[grade]
+# stage.sh adds graders/07-validation-checks-tests-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.
+backend = "terraform-test"
+entry = "curriculum/week1/tf/grade.sh"
+network = "none"
+
+[tools]
+# Upstream pins ">= 1.6, < 2.0"; the grader uses mock_provider, which needs 1.7 or later.
+terraform = ">= 1.7, < 2.0"
+
+[[tf_providers]]
+# Upstream pins "~> 6.0" with no lock file; offline grading resolves it from the mirror.
+source = "hashicorp/aws"
+version = "~> 6.0"

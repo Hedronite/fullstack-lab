@@ -1,0 +1,18 @@
+# Example: nginx Deployment and NodePort Service on a cluster. Not graded.
+# Format: docs/lab-toml.md
+schema = "hedronite.lab/v1"
+
+[lab]
+id = "example-k8s"
+title = "Kubernetes: nginx on the lab node"
+kind = "example"
+family = "kubernetes"
+source = "labs-examples/k8s"
+
+[grade]
+backend = "manual"
+network = "egress"
+
+[tools]
+kubectl = "*"
+curl = "*"

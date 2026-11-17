@@ -1,0 +1,21 @@
+# Example: Prometheus and Grafana, in the container and as a Helm chart. Not graded.
+# Format: docs/lab-toml.md
+schema = "hedronite.lab/v1"
+
+[lab]
+id = "example-obs"
+title = "Observability: Prometheus and Grafana, two ways"
+kind = "example"
+family = "observability"
+source = "labs-examples/obs"
+
+[grade]
+backend = "manual"
+network = "egress"
+
+[tools]
+prometheus = "*"
+grafana = "*"
+helm = "*"
+kubectl = "*"
+tmux = "*"
