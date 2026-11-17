@@ -10,6 +10,7 @@ title = "Providers, aliases, and auth"
 kind = "fix"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/06-providers-alias-auth-broken"
+readme = "../../../../upstream/tfpro-labs/labs/06-providers-alias-auth-broken/README.md"
 
 [grade]
 # stage.sh adds graders/06-providers-alias-auth-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

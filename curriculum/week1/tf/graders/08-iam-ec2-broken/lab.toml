@@ -10,6 +10,7 @@ title = "IAM chain and EC2"
 kind = "explain"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/08-iam-ec2-broken"
+readme = "../../../../upstream/tfpro-labs/labs/08-iam-ec2-broken/README.md"
 
 [grade]
 # stage.sh adds graders/08-iam-ec2-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

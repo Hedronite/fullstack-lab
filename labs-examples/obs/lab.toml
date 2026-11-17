@@ -8,6 +8,7 @@ title = "Observability: Prometheus and Grafana, two ways"
 kind = "example"
 family = "observability"
 source = "labs-examples/obs"
+readme = "README.md"
 
 [grade]
 backend = "manual"
@@ -19,3 +20,7 @@ grafana = "*"
 helm = "*"
 kubectl = "*"
 tmux = "*"
+
+[mounts]
+# cluster mode installs a Helm chart on a real cluster; nothing else is mounted.
+creds = ["kube"]

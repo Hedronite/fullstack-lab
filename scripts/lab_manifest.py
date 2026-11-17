@@ -25,7 +25,12 @@ import json
 import os
 import re
 import sys
-import tomllib
+
+if sys.version_info < (3, 11):
+    sys.exit("lab_manifest.py needs Python 3.11 or later (it uses tomllib); "
+             f"this is {sys.version.split()[0]}")
+
+import tomllib  # noqa: E402
 from pathlib import Path
 
 FLOOR_SCHEMA = "hedronite.lab.floor/v1"
@@ -39,6 +44,9 @@ FAMILIES = {"terraform", "kubernetes", "observability", "rust", "ops", "bun",
 BACKENDS = {"terraform-test", "check-sh", "manual", "none"}
 NETWORK = {"none", "egress"}
 VENDORED = {"cargo", "go", "npm", "nix", "uv"}
+# Host credential directories a lab may ask `lab` to mount. Nothing is mounted unless
+# a manifest lists it in [mounts] creds.
+CREDS = {"aws", "kube", "ssh", "gcloud", "azure", "docker", "gh"}
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,63}$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 VERSION_RE = re.compile(r"^\d+(\.\d+){0,3}$")
@@ -47,6 +55,7 @@ CLAUSE_RE = re.compile(r"^(=|!=|>=|<=|>|<|~>)?\s*(\d+(?:\.\d+){0,3})$")
 PROVIDER_RE = re.compile(r"^[a-z0-9-]+/[a-z0-9-]+$")
 # Directories never scanned for manifests (third-party sources, build output).
 SKIP_DIRS = {".git", "upstream", "node_modules", "target", ".terraform"}
+SUBMODULE_HINT = "if it lives in a submodule, run: git submodule update --init"
 
 
 class Errors:
@@ -255,7 +264,7 @@ def load_manifest(path: Path, root: Path, floor: dict, e: Errors) -> dict | None
     if data.get("schema") != LAB_SCHEMA:
         e.err(where, f"schema must be {LAB_SCHEMA!r}")
     for key in data:
-        if key not in {"schema", "lab", "grade", "tools", "tf_providers", "needs"}:
+        if key not in {"schema", "lab", "grade", "tools", "tf_providers", "needs", "mounts"}:
             e.err(where, f"unknown top-level key {key!r}")
 
     lab = data.get("lab")
@@ -263,7 +272,7 @@ def load_manifest(path: Path, root: Path, floor: dict, e: Errors) -> dict | None
         e.err(where, "missing [lab] table")
         return None
     for k in lab:
-        if k not in {"id", "title", "kind", "family", "date", "aliases", "source"}:
+        if k not in {"id", "title", "kind", "family", "date", "aliases", "source", "readme"}:
             e.err(where, f"[lab] unknown key {k!r}")
     lab_id = lab.get("id")
     if not (isinstance(lab_id, str) and ID_RE.match(lab_id)):
@@ -286,7 +295,20 @@ def load_manifest(path: Path, root: Path, floor: dict, e: Errors) -> dict | None
         if not isinstance(src, str) or src.startswith("/") or ".." in Path(src).parts:
             e.err(where, "[lab] source must be a repo-relative path")
         elif not (root / src).exists():
-            e.err(where, f"[lab] source {src!r} does not exist (submodule not initialised?)")
+            e.err(where, f"[lab] source {src!r} does not exist; {SUBMODULE_HINT}")
+    if "readme" in lab:
+        readme = lab["readme"]
+        if not isinstance(readme, str) or not readme or readme.startswith("/"):
+            e.err(where, "[lab] readme must be a path relative to the manifest")
+        else:
+            target = (path.parent / readme).resolve()
+            try:
+                target.relative_to(root.resolve())
+            except ValueError:
+                e.err(where, f"[lab] readme {readme!r} points outside the repository")
+            else:
+                if not target.is_file():
+                    e.err(where, f"[lab] readme {readme!r} does not exist; {SUBMODULE_HINT}")
 
     grade = data.get("grade")
     network = None
@@ -306,7 +328,7 @@ def load_manifest(path: Path, root: Path, floor: dict, e: Errors) -> dict | None
             if not isinstance(entry, str):
                 e.err(where, "[grade] entry is required for this backend")
             elif not (root / entry).is_file():
-                e.err(where, f"[grade] entry {entry!r} is not a file")
+                e.err(where, f"[grade] entry {entry!r} is not a file; {SUBMODULE_HINT}")
 
     tools = data.get("tools")
     declared: dict[str, list[tuple[str, str]]] = {}
@@ -351,8 +373,31 @@ def load_manifest(path: Path, root: Path, floor: dict, e: Errors) -> dict | None
     if not (isinstance(vendored, list) and all(v in VENDORED for v in vendored)):
         e.err(where, f"[needs] vendored must be a list drawn from {sorted(VENDORED)}")
 
+    creds: list[str] = []
+    mounts = data.get("mounts", {})
+    if not isinstance(mounts, dict):
+        e.err(where, "[mounts] must be a table")
+    else:
+        for k in mounts:
+            if k != "creds":
+                e.err(where, f"[mounts] unknown key {k!r}")
+        raw = mounts.get("creds", [])
+        if not (isinstance(raw, list) and all(isinstance(c, str) for c in raw)):
+            e.err(where, "[mounts] creds must be a list of names")
+        else:
+            for c in raw:
+                if c not in CREDS:
+                    e.err(where, f"[mounts] creds: {c!r} is not one of {sorted(CREDS)}")
+            if len(set(raw)) != len(raw):
+                e.err(where, "[mounts] creds lists a name twice")
+            if raw and network == "none":
+                e.err(where, "[mounts] creds is not allowed when [grade] network = 'none'; "
+                             "offline grading never needs host credentials")
+            creds = [c for c in raw if c in CREDS]
+
     return {"path": where, "id": lab_id, "aliases": aliases, "network": network,
-            "tools": declared, "raw_tools": tools, "providers": providers}
+            "tools": declared, "raw_tools": tools, "providers": providers,
+            "creds": creds}
 
 
 # --------------------------------------------------------------- discovery
@@ -470,6 +515,9 @@ def resolve_union(floor: dict, labs: list[dict], e: Errors) -> dict:
         "tools": dict(sorted(tools.items())),
         "tf_mirror": [{"source": s, "version": v} for s, v in sorted(mirror)],
         "labs": sorted(l["id"] for l in labs if l["id"]),
+        # Labs that opt into host credential mounts; empty means none are mounted anywhere.
+        "creds_opt_in": {l["id"]: l["creds"] for l in sorted(labs, key=lambda l: l["id"] or "")
+                         if l["creds"] and l["id"]},
     }
 
 

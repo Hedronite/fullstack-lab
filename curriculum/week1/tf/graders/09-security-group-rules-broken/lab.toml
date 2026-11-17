@@ -10,6 +10,7 @@ title = "Security groups and separate rule resources"
 kind = "explain"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/09-security-group-rules-broken"
+readme = "../../../../upstream/tfpro-labs/labs/09-security-group-rules-broken/README.md"
 
 [grade]
 # stage.sh adds graders/09-security-group-rules-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

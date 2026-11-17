@@ -8,6 +8,7 @@ title = "Lifecycle guardrails"
 kind = "fix"
 family = "terraform"
 source = "curriculum/week1/tf/labs/01-lifecycle-guardrails"
+readme = "README.md"
 
 [grade]
 # check.sh embeds the terraform test grader and runs it against a mirror-only CLI config.

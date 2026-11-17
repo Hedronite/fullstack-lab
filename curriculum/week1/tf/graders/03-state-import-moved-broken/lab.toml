@@ -10,6 +10,7 @@ title = "State, import, and moved blocks"
 kind = "fix"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/03-state-import-moved-broken"
+readme = "../../../../upstream/tfpro-labs/labs/03-state-import-moved-broken/README.md"
 
 [grade]
 # stage.sh adds graders/03-state-import-moved-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.
