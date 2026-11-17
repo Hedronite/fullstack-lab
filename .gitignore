@@ -34,3 +34,6 @@ terraform.tfstate*
 lab-workspaces/
 labs-examples/tf/hello.txt
 labs-examples/tf/test/go.sum
+
+# python
+**/__pycache__/

@@ -1,0 +1,215 @@
+# Lab image floor: the toolchain baseline every published lab image carries,
+# before any lab manifest is added to the union.
+#
+# The published image (ghcr.io/hedronite/lab) is built from
+#     floor (this file)  ∪  every lab.toml in the repository
+# See docs/lab-toml.md for the format and scripts/lab_manifest.py for the
+# validator and union resolver.
+#
+# Sections:
+#   [vars]     named pins that are still open. Referenced as "${NAME}" in a
+#              version field. Override at resolve time with LAB_VAR_<NAME>.
+#   [toggles]  on/off switches for [optional] tools. Override with
+#              LAB_TOGGLE_<NAME>=1|0.
+#   [tools]    always in the image.
+#   [optional] in the image only when its toggle is on, or a lab declares it.
+#   [catalog]  known tools that enter the image only when a lab declares them.
+#   [retired]  removed tools. A lab that declares one fails validation; bringing
+#              one back is a human decision that moves it into [catalog].
+#   [tf_mirror] offline Terraform provider mirror baked into the image, so
+#              Terraform labs grade with no network.
+
+schema = "hedronite.lab.floor/v1"
+
+[vars]
+# Open pin: 1.3.14 (the current floor) or a 1.4+ release. Changing this value
+# is the whole change; every lab that pins Bun is re-checked against it.
+BUN_VERSION = "1.3.14"
+# Pins used only if the matching toggle is turned on. Empty means not chosen yet.
+OPENTOFU_VERSION = ""
+FISH_VERSION = ""
+LUA_VERSION = ""
+
+[toggles]
+# Open decision: whether OpenTofu, Fish and Lua join the floor. Default off.
+opentofu = false
+fish = false
+lua = false
+
+# ---------------------------------------------------------------- languages
+[tools.rust]
+version = "1.98"
+bins = ["rustc", "cargo", "rustup"]
+note = "rustup toolchain 1.98; replaces 1.84.0"
+
+[tools.go]
+version = "1.23.5"
+bins = ["go"]
+
+[tools.python]
+version = "3.12.3"
+bins = ["python3"]
+
+[tools.uv]
+version = "0.5.24"
+bins = ["uv"]
+
+[tools.bun]
+version = "${BUN_VERSION}"
+bins = ["bun"]
+
+[tools.gleam]
+version = "1.19.2"
+bins = ["gleam"]
+note = "candidate pin, taken from an existing Gleam lab log; confirm when the image is built"
+
+[tools.nickel]
+version = "1.18.0"
+bins = ["nickel"]
+
+[tools.nushell]
+version = "0.116.1"
+bins = ["nu"]
+
+[tools.nix]
+status = "pending-pin"
+bins = ["nix"]
+note = "required on PATH; must be able to run flake checks offline when a lab vendors its inputs"
+
+# ---------------------------------------------------------- infrastructure
+[tools.terraform]
+version = "1.10.5"
+bins = ["terraform"]
+note = "default version, installed through tfenv"
+
+[tools.tfenv]
+version = "3.0.0"
+bins = ["tfenv"]
+
+[tools.kubectl]
+version = "1.31.4"
+bins = ["kubectl"]
+
+[tools.helm]
+version = "3.16.4"
+bins = ["helm"]
+
+[tools.k9s]
+version = "0.32.7"
+bins = ["k9s"]
+
+[tools.prometheus]
+version = "2.55.1"
+bins = ["prometheus", "promtool"]
+
+[tools.grafana]
+version = "11.4.0"
+bins = ["grafana"]
+
+# ---------------------------------------------------------- workshop bench
+[tools.jq]
+version = "1.7"
+bins = ["jq"]
+
+[tools.yq]
+version = "4.44.6"
+bins = ["yq"]
+
+[tools.gh]
+version = "2.65.0"
+bins = ["gh"]
+
+[tools.git]
+source = "apt"
+bins = ["git"]
+
+[tools.zsh]
+source = "apt"
+bins = ["zsh"]
+
+[tools.bash]
+source = "apt"
+bins = ["bash"]
+
+[tools.curl]
+source = "apt"
+bins = ["curl"]
+
+[tools.unzip]
+source = "apt"
+bins = ["unzip"]
+
+[tools.build-essential]
+source = "apt"
+bins = ["gcc", "make"]
+
+[tools.vim]
+source = "apt"
+bins = ["vim"]
+
+[tools.neovim]
+source = "apt"
+bins = ["nvim"]
+
+[tools.tmux]
+source = "apt"
+bins = ["tmux"]
+
+# --------------------------------------------------------------- optional
+[optional.opentofu]
+toggle = "opentofu"
+version = "${OPENTOFU_VERSION}"
+bins = ["tofu"]
+
+[optional.fish]
+toggle = "fish"
+version = "${FISH_VERSION}"
+bins = ["fish"]
+
+[optional.lua]
+toggle = "lua"
+version = "${LUA_VERSION}"
+bins = ["lua"]
+
+# ---------------------------------------------------------------- catalog
+# Known tools that are not in the floor. A lab that declares one adds it to
+# the union; it then stays for as long as any lab declares it.
+[catalog.krew]
+version = "0.4.4"
+bins = ["kubectl-krew"]
+note = "was in the image before the floor existed; returns only through a lab"
+
+[catalog.bend]
+version = "2.0.36"
+bins = ["bend"]
+
+[catalog.lean]
+version = "4.34.0"
+bins = ["lean", "lake"]
+
+[catalog.v]
+status = "pending-pin"
+bins = ["v"]
+
+[catalog.beamr]
+status = "pending-pin"
+bins = ["beamr"]
+note = "pairs with Gleam; no pinnable build verified yet"
+
+# ---------------------------------------------------------------- retired
+[retired.ruby]
+reason = "not part of the toolchain doctrine; no lab uses it"
+
+[retired.rails]
+reason = "deprecated in favour of the Rust web frameworks; no lab uses it"
+
+[retired.r]
+reason = "not part of the toolchain doctrine; no lab uses it"
+
+[retired.deno]
+reason = "Bun is the JavaScript and TypeScript runtime"
+
+# -------------------------------------------------------------- tf mirror
+[[tf_mirror]]
+source = "hashicorp/aws"
+version = "6.71.0"

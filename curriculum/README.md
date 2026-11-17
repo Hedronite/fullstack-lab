@@ -9,6 +9,7 @@ into this repo; they are referenced through a git submodule.
 | `week1/tf/graders/<lab>/hedronite_grader.tftest.hcl` | our `terraform test` grader for each lab, written here (not derived from upstream test files) |
 | `week1/tf/labs/01-lifecycle-guardrails/` | lab 01 written by Hedronite (MIT): `starter/` (broken, staged), `reference/` (answer), `README.md`, `ci-gate.sh` + `ci-gate.log` (reference must PASS, starter must FAIL) |
 | `week1/tf/labs.txt` | grader → lab source map (submodule dir, or `local:<dir>` for Hedronite-authored labs), plus lab type (`fix` / `explain`) |
+| `week1/tf/labs/<lab>/lab.toml`, `week1/tf/graders/<lab>/lab.toml` | each lab's tool manifest: in the lab dir for Hedronite-authored labs, beside the grader for submodule labs (see [`docs/lab-toml.md`](../docs/lab-toml.md)) |
 | `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
 | `week1/tf/grade.sh` | `terraform init -backend=false` + `terraform test` of our grader only, in each staged lab, one `RESULT` line each |
 | `week1/tf/logs/run-2026-10-30.txt` | grader run log (Terraform 1.10.5, host run of grade.sh on all 9 labs, plus broken 08/09 copies and a 04 probe) |
