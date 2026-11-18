@@ -10,8 +10,7 @@ into this repo; they are referenced through a git submodule.
 | `week1/tf/labs/01-lifecycle-guardrails/` | lab 01 written by Hedronite (MIT): `starter/` (broken, staged), `reference/` (answer), `README.md`, `ci-gate.sh` + `ci-gate.log` (reference must PASS, starter must FAIL) |
 | `week1/tf/labs.txt` | grader → lab source map (submodule dir, or `local:<dir>` for Hedronite-authored labs), plus lab type (`fix` / `explain`) |
 | `week1/tf/stage.sh` | copy labs from the submodule into a workspace and add our grader as `tests/hedronite_grader.tftest.hcl` |
-| `week1/tf/grade.sh` | the one grading command: backend and lock checks, `terraform init -backend=false` + `terraform test` of our grader only, and the lab's `graders/<lab>/static.sh` task checks if it has one; one `RESULT` line per lab. `grade.sh <dest>` grades every staged lab, `grade.sh <staged-lab-dir>` grades one |
-| `week1/tf/graders/<lab>/static.sh` | optional: checks for tasks a mock plan or apply cannot see (import blocks, version bounds), run by `grade.sh` after the grader |
+| `week1/tf/grade.sh` | the one grading command (POSIX sh): backend and lock checks, `terraform init -backend=false` + `terraform test` of our grader only, then the lab's own `check.sh` for Hedronite-authored labs; one final `RESULT` line per lab. `grade.sh <dest>` grades every staged lab, `grade.sh <staged-lab-dir>` grades one |
 | `week1/tf/logs/run-2026-10-30.txt` | grader run log (Terraform 1.10.5, host run of grade.sh on all 9 labs, plus broken 08/09 copies and a 04 probe) |
 
 ## License note
@@ -50,28 +49,34 @@ downloads providers from the Terraform registry. Terraform >= 1.7.
 
 ## One grading command
 
-`grade.sh` grades every task of a lab in one run. Hedronite-authored labs also
-ship a `check.sh` (and `ci-gate.sh`) so CI can gate a lab from a single
-self-contained file; `check.sh` keeps working unchanged. For learners,
-`grade.sh` is the entry point, and it covers everything `check.sh` covers:
+`grade.sh` grades every task of a lab in one run, and its last line per lab is
+the verdict. There is no second step.
 
-| | `grade.sh` | `check.sh` |
-|---|---|---|
-| terraform test grader | yes (`graders/<lab>/`) | yes (embedded copy, drift-checked by `ci-gate.sh`) |
-| offline provider mirror | yes: `GRADE_TF_CLI_CONFIG`, else `/opt/tf-mirror`, else registry | yes: `CI_GATE_TF_CLI_CONFIG`, else `/opt/tf-mirror`, else none |
-| lock file read-only | yes, where the lab ships one | yes |
-| backend variable check | yes | no |
-| static task checks | yes, `graders/<lab>/static.sh` | only if written into that `check.sh` |
+1. Backend check, then lock check.
+2. The `terraform test` grader against mock providers.
+3. For a Hedronite-authored lab (`local:` in `labs.txt`), that lab's own
+   `check.sh`, which also checks the tasks a mock apply cannot see (import
+   blocks, version bounds, secrets in defaults). Its lines are shown as detail
+   (`Task 3b: ...` lines, indented); its own `RESULT` line is dropped, and an exit 3
+   setup failure counts as FAIL.
 
-When a lab's `check.sh` checks a task statically (for example with `grep` on the
-`.tf` text), the same checks go in `graders/<lab>/static.sh`, so `grade.sh`
-fails the lab on them too. A `static.sh` prints one `Task N: ...` line per unmet
-task and exits 1 if any are unmet, 0 otherwise.
+Every step runs, and the lab passes only if all of them pass. Upstream
+submodule labs have no `check.sh` and are graded by steps 1 and 2.
+`GRADE_SKIP_CHECK=1` runs the grader alone, as before.
+
+`grade.sh` is POSIX sh, so it runs on a host and inside
+`hedronite/fullstack-lab-tf:1.10.5-aws` (which has no bash). Providers come from
+`GRADE_TF_CLI_CONFIG` if set (a mirror-only config), else the image's
+`/opt/tf-mirror`, else the registry; `check.sh` gets the same choice.
 
 ```bash
 curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf          # every staged lab
-cd ~/lab-workspaces/default/week1/tf/01-lifecycle-guardrails && /path/to/curriculum/week1/tf/grade.sh .
+curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf 01       # one lab by prefix
+cd ~/lab-workspaces/default/week1/tf/01-lifecycle-guardrails && sh /path/to/curriculum/week1/tf/grade.sh .
 ```
+
+`check.sh` and `ci-gate.sh` still run on their own: they are how CI gates a lab
+from a single self-contained file. Learners do not need to run them.
 
 ## Lab types
 

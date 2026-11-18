@@ -53,7 +53,8 @@ curriculum/week1/tf/stage.sh ~/lab-workspaces/default/week1/tf 01
 curriculum/week1/tf/grade.sh ~/lab-workspaces/default/week1/tf 01
 ```
 
-The grader uses `mock_provider "aws"`: no credentials, no cloud calls.
+`grade.sh` is the one command: it runs the grader and then this lab's `check.sh`, and its
+last line is the verdict. The grader uses `mock_provider "aws"`: no credentials, no cloud calls.
 
 ```
 RESULT 01-lifecycle-guardrails             fix     FAIL      # starter as staged
@@ -77,7 +78,8 @@ terraform plan                 # must say "create replacement and then destroy" 
 
 ## CI gate
 
-`check.sh` (POSIX sh, lab root) is the checker. Run from `starter/` or `reference/`,
+`check.sh` (POSIX sh, lab root) is the checker. `grade.sh` runs it for you; CI and authors
+can also run it on its own. Run from `starter/` or `reference/`,
 it copies the `.tf` files and lock file into a mktemp dir (removed on exit), stages the
 grader there, and runs `terraform init` + `terraform test` under `env -i` (PATH, LANG, a
 throwaway HOME, TF_IN_AUTOMATION, TF_CLI_CONFIG_FILE only), then prints
