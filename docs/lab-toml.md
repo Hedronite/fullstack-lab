@@ -17,8 +17,17 @@ scripts/lab_manifest.py union --format args  # NAME_VERSION=x lines for image bu
 python3 -m unittest discover -s scripts/tests
 ```
 
-Python 3.11 or later, standard library only. Exit codes: 0 ok, 1 invalid or
-conflicting, 2 usage.
+Requirements:
+
+- **Python 3.11 or later.** The script uses the standard library only, including
+  `tomllib`, which first shipped in 3.11. On an older Python it stops at once
+  with a message naming the version it found.
+- **Submodules initialised.** Some labs, their `source` and their `readme` live
+  in a git submodule (`curriculum/upstream/tfpro-labs`). Run
+  `git submodule update --init` before `validate`; otherwise those paths are
+  reported missing, and each such error repeats this hint.
+
+Exit codes: 0 ok, 1 invalid or conflicting, 2 usage.
 
 ## Where a manifest lives
 
@@ -48,6 +57,8 @@ family  = "terraform"                  # required: terraform | kubernetes | obse
                                        #   ops | bun | gleam | python | go | nix | polyglot
 date    = "2026-11-16"                 # optional, YYYY-MM-DD, for `lab <date>`
 source  = "curriculum/week1/tf/labs/01-lifecycle-guardrails"  # optional, repo-relative, must exist
+readme  = "README.md"                  # optional, relative to this lab.toml, must exist;
+                                       #   what `lab <id>` shows when it stages the lab
 
 [grade]
 backend = "check-sh"                   # required: terraform-test | check-sh | manual | none
@@ -64,6 +75,9 @@ version = "= 6.71.0"
 
 [needs]                                # optional
 vendored = ["cargo"]                   # inputs the lab ships offline: cargo | go | npm | nix | uv
+
+[mounts]                               # optional
+creds = []                             # host credentials to mount; default empty (see below)
 ```
 
 Unknown keys are errors, so a typo cannot silently drop a requirement.
@@ -96,6 +110,49 @@ validation; add it to `[catalog]` first, with its pin and binaries, so the
 image build knows how to install it. A name in `[retired]` (Ruby, Rails, R,
 Deno) fails with the recorded reason. Bringing one back is a deliberate change
 to the floor, not something a manifest can do.
+
+### Credential mounts
+
+**By default no credentials are mounted.** `lab` does not mount `~/.aws`,
+`~/.kube`, `~/.ssh`, `~/.config/gcloud`, `~/.azure`, `~/.docker`, gh
+configuration, or any other cloud or registry credentials into the container,
+and no lab image carries any. Grading runs with mock providers and an offline
+provider mirror, so it never needs them.
+
+A lab that genuinely needs one (for example an example that talks to a real
+cluster) opts in, by name, in its manifest:
+
+```toml
+[mounts]
+creds = ["kube"]
+```
+
+| Name | Host path `lab` would mount, read-only |
+|---|---|
+| `aws` | `~/.aws` |
+| `kube` | `~/.kube` |
+| `ssh` | `~/.ssh` |
+| `gcloud` | `~/.config/gcloud` |
+| `azure` | `~/.azure` |
+| `docker` | `~/.docker` |
+| `gh` | `~/.config/gh` |
+
+Rules enforced by `validate`:
+
+- Only the names above are accepted; anything else fails.
+- A name may appear once.
+- A lab whose `[grade] network` is `none` may not opt in: offline grading never
+  needs host credentials.
+- `union` lists every opt-in under `creds_opt_in`, so a review sees each one.
+  An empty map means no lab mounts anything.
+
+The opt-in is a declaration. `lab` honours it only for the lab being staged,
+and only for the names listed.
+
+The current `shell/lab.zsh` still mounts `~/.aws`, `~/.config/gcloud`,
+`~/.azure`, `~/.kube` and `~/.ssh` whenever they exist on the host. The change
+that adds the `lab <id>` and `lab grade` verbs replaces that with this opt-in;
+until it lands, this section describes the target, not the shipped shell.
 
 ## The floor: `image/floor.toml`
 

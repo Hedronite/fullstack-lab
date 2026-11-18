@@ -10,6 +10,7 @@ title = "Validation, checks, and tests"
 kind = "explain"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/07-validation-checks-tests-broken"
+readme = "../../../../upstream/tfpro-labs/labs/07-validation-checks-tests-broken/README.md"
 
 [grade]
 # stage.sh adds graders/07-validation-checks-tests-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

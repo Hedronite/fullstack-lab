@@ -10,6 +10,7 @@ title = "Dynamic configuration"
 kind = "fix"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/02-dynamic-config-broken"
+readme = "../../../../upstream/tfpro-labs/labs/02-dynamic-config-broken/README.md"
 
 [grade]
 # stage.sh adds graders/02-dynamic-config-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

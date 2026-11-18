@@ -10,6 +10,7 @@ title = "Workspaces and cross-stack data flow"
 kind = "fix"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/05-workspaces-cross-stack-broken"
+readme = "../../../../upstream/tfpro-labs/labs/05-workspaces-cross-stack-broken/README.md"
 
 [grade]
 # stage.sh adds graders/05-workspaces-cross-stack-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

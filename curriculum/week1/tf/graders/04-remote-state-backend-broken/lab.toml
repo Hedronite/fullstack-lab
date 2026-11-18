@@ -10,6 +10,7 @@ title = "Remote state and backend rules"
 kind = "fix"
 family = "terraform"
 source = "curriculum/upstream/tfpro-labs/labs/04-remote-state-backend-broken"
+readme = "../../../../upstream/tfpro-labs/labs/04-remote-state-backend-broken/README.md"
 
 [grade]
 # stage.sh adds graders/04-remote-state-backend-broken/hedronite_grader.tftest.hcl; grade.sh runs only that file.

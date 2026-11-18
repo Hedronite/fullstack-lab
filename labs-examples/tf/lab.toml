@@ -7,6 +7,7 @@ title = "Terraform and terratest hello world"
 kind = "example"
 family = "terraform"
 source = "labs-examples/tf"
+readme = "README.md"
 
 [grade]
 # The student runs `go test` by hand; `go mod tidy` and `terraform init` fetch from the network.

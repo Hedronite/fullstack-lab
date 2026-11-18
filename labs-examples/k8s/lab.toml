@@ -8,6 +8,7 @@ title = "Kubernetes: nginx on the lab node"
 kind = "example"
 family = "kubernetes"
 source = "labs-examples/k8s"
+readme = "README.md"
 
 [grade]
 backend = "manual"
@@ -16,3 +17,7 @@ network = "egress"
 [tools]
 kubectl = "*"
 curl = "*"
+
+[mounts]
+# kubectl talks to a real cluster; nothing else is mounted.
+creds = ["kube"]

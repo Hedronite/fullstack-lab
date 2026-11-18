@@ -135,5 +135,99 @@ class Validation(Fixture):
         self.assertTrue(any("has no lab.toml" in m for m in e.errors), e.errors)
 
 
+class CredentialMounts(Fixture):
+    def test_repository_graded_labs_mount_nothing(self):
+        e = lm.Errors()
+        union = lm.run(REPO, [], e)
+        # Only the ungraded cluster examples opt in, and only to kube.
+        self.assertEqual(union["creds_opt_in"],
+                         {"example-k8s": ["kube"], "example-obs": ["kube"]})
+
+    def test_default_is_empty(self):
+        self.lab('jq = "*"')
+        union, e = self.run_lm()
+        self.assertEqual(e.errors, [])
+        self.assertEqual(union["creds_opt_in"], {})
+
+    def test_allowed_opt_in_is_reported(self):
+        self.lab('kubectl = "*"', lab_id="needs-kube",
+                 extra='[mounts]\ncreds = ["kube", "aws"]\n')
+        union, e = self.run_lm()
+        self.assertEqual(e.errors, [])
+        self.assertEqual(union["creds_opt_in"], {"needs-kube": ["kube", "aws"]})
+
+    def test_unknown_cred_fails(self):
+        self.lab('jq = "*"', extra='[mounts]\ncreds = ["home"]\n')
+        _, e = self.run_lm()
+        self.assertTrue(any("is not one of" in m for m in e.errors), e.errors)
+
+    def test_duplicate_cred_fails(self):
+        self.lab('jq = "*"', extra='[mounts]\ncreds = ["ssh", "ssh"]\n')
+        _, e = self.run_lm()
+        self.assertTrue(any("twice" in m for m in e.errors), e.errors)
+
+    def test_unknown_mount_key_fails(self):
+        self.lab('jq = "*"', extra='[mounts]\nhome = true\n')
+        _, e = self.run_lm()
+        self.assertTrue(any("[mounts] unknown key" in m for m in e.errors), e.errors)
+
+    def test_offline_lab_cannot_opt_in(self):
+        self.lab('jq = "*"', network="none", extra='[mounts]\ncreds = ["aws"]\n')
+        _, e = self.run_lm()
+        self.assertTrue(any("not allowed when" in m for m in e.errors), e.errors)
+
+
+class Readme(Fixture):
+    def test_repository_labs_all_have_a_readme(self):
+        for path in lm.find_manifests(REPO):
+            data = lm.tomllib.loads(path.read_text())
+            self.assertIn("readme", data["lab"], str(path))
+
+    def test_readme_relative_to_manifest_passes(self):
+        self.lab('jq = "*"', extra="")
+        d = self.root / "labs-examples" / f"l{self.n}"
+        (d / "README.md").write_text("# lab\n")
+        text = (d / "lab.toml").read_text().replace('[grade]', 'readme = "README.md"\n[grade]', 1)
+        (d / "lab.toml").write_text(text)
+        _, e = self.run_lm()
+        self.assertEqual(e.errors, [])
+
+    def _with_readme(self, value):
+        self.lab('jq = "*"')
+        d = self.root / "labs-examples" / f"l{self.n}"
+        text = (d / "lab.toml").read_text().replace('[grade]', f'readme = "{value}"\n[grade]', 1)
+        (d / "lab.toml").write_text(text)
+        _, e = self.run_lm()
+        return e
+
+    def test_missing_readme_fails_with_submodule_hint(self):
+        e = self._with_readme("NOPE.md")
+        self.assertTrue(any("does not exist" in m and "git submodule update --init" in m
+                            for m in e.errors), e.errors)
+
+    def test_absolute_readme_fails(self):
+        e = self._with_readme("/etc/hosts")
+        self.assertTrue(any("relative to the manifest" in m for m in e.errors), e.errors)
+
+    def test_readme_outside_repository_fails(self):
+        e = self._with_readme("../../../../outside.md")
+        self.assertTrue(any("outside the repository" in m for m in e.errors), e.errors)
+
+    def test_missing_source_hints_at_submodules(self):
+        self.lab('jq = "*"')
+        d = self.root / "labs-examples" / f"l{self.n}"
+        text = (d / "lab.toml").read_text().replace('[grade]', 'source = "curriculum/upstream/x"\n[grade]', 1)
+        (d / "lab.toml").write_text(text)
+        _, e = self.run_lm()
+        self.assertTrue(any("git submodule update --init" in m for m in e.errors), e.errors)
+
+
+class ClosedKeys(Fixture):
+    def test_unknown_top_level_key_fails(self):
+        self.lab('jq = "*"', extra='[creds]\naws = true\n')
+        _, e = self.run_lm()
+        self.assertTrue(any("unknown top-level key 'creds'" in m for m in e.errors), e.errors)
+
+
 if __name__ == "__main__":
     unittest.main()
