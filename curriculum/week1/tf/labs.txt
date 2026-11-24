@@ -19,3 +19,4 @@
 15-audit-account-assumed-role  local:labs/15-audit-account-assumed-role/starter  fix
 19-queue-retry-and-dead-letters  local:labs/19-queue-retry-and-dead-letters/starter  fix
 20-ledger-archive-moved-and-remote-state  local:labs/20-ledger-archive-moved-and-remote-state/starter  fix
+21-deploy-canary-alarm-and-removed  local:labs/21-deploy-canary-alarm-and-removed/starter  fix
